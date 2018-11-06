@@ -6,7 +6,8 @@ go:
 
 env:
   - CODECOV_TOKEN="ba6b6030-61c4-4729-95e6-f354aca0368e"
-  - CC_TEST_REPORTER_ID="aee118647a2bfc2e0748dbb6a83e6d3d426d9d45355ecc88f37d7c1921ced4ed"
+  global:
+    - CC_TEST_REPORTER_ID="aee118647a2bfc2e0748dbb6a83e6d3d426d9d45355ecc88f37d7c1921ced4ed"
 
 before_install:
   - go get -v github.com/golang/lint/golint
