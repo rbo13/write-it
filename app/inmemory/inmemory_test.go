@@ -20,7 +20,7 @@ func TestInMemoryStore(t *testing.T) {
 		}
 
 		if err := postInmemory.CreatePost(post); err != nil {
-			t.Errorf("Error occured due to: %v", err)
+			t.Errorf("Error occurred due to: %v", err)
 		}
 
 		post2 := &app.Post{
@@ -31,7 +31,7 @@ func TestInMemoryStore(t *testing.T) {
 		}
 
 		if err := postInmemory.CreatePost(post2); err != nil {
-			t.Errorf("Error occured due to: %v", err)
+			t.Errorf("Error occurred due to: %v", err)
 		}
 	})
 
