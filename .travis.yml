@@ -6,22 +6,31 @@ go:
 
 env:
   - CODECOV_TOKEN="ba6b6030-61c4-4729-95e6-f354aca0368e"
+  - CC_TEST_REPORTER_ID="aee118647a2bfc2e0748dbb6a83e6d3d426d9d45355ecc88f37d7c1921ced4ed"
 
 before_install:
   - go get -v github.com/golang/lint/golint
   - go get -t -v ./...
   - golint
 
+install:
+  - export PATH=$GOPATH/bin:./_output/tools/etcd/bin:$PATH
+  - export GO111MODULE=off
+
+before_script:
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  - chmod +x ./cc-test-reporter
+  - ./cc-test-reporter before-build
+
 script:
   - CGO_ENABLED=0
   - go test -v ./... -coverprofile=coverage.txt -covermode=atomic
 
+after_script:
+  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
+
 after_success:
   - bash <(curl -s https://codecov.io/bash)
-
-install:
-  - export PATH=$GOPATH/bin:./_output/tools/etcd/bin:$PATH
-  - export GO111MODULE=off
 
 branches:
   only:
