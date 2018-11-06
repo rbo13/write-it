@@ -23,6 +23,6 @@ install:
   - export PATH=$GOPATH/bin:./_output/tools/etcd/bin:$PATH
   - export GO111MODULE=off
 
-# branches:
-#   except:
-# - /^*-v[0-9]/
+branches:
+  except:
+- /^*-v[0-9]/
