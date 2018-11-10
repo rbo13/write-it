@@ -47,12 +47,7 @@ func (ps *postService) Post(id int64) (*app.Post, error) {
 		return nil, errIDRequired
 	}
 
-	for _, post := range ps.posts {
-		if post.ID == id {
-			return post, nil
-		}
-	}
-	return nil, errors.New("Post not found")
+	return ps.posts[id], nil
 }
 
 func (ps *postService) Posts() ([]*app.Post, error) {
