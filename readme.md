@@ -5,3 +5,21 @@
 
 
 > A sample dockerized application.
+
+
+##### Building the application in docker
+```sh
+$ docker build -t <tag_name:latest> </path/to/entrypoint>
+```
+
+
+> Sample
+```sh
+$ docker build -t write-it:latest .
+```
+
+
+##### Running inside inside the docker container
+```sh
+$ docker run -it -p 1333:1333 write-it:latest
+```
