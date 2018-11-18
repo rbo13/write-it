@@ -48,7 +48,6 @@ func (p *postUsecase) Get(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		render.JSON(w, r, err.Error())
-		return
 	}
 	render.JSON(w, r, posts)
 }
@@ -58,14 +57,12 @@ func (p *postUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		render.JSON(w, r, err.Error())
-		return
 	}
 
 	post, err := p.postService.Post(postID)
 
 	if err != nil {
 		render.JSON(w, r, err.Error())
-		return
 	}
 
 	render.JSON(w, r, post)
@@ -77,7 +74,6 @@ func (p *postUsecase) Update(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		render.JSON(w, r, err)
-		return
 	}
 
 	post.ID = postID
@@ -87,14 +83,12 @@ func (p *postUsecase) Update(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		render.JSON(w, r, err)
-		return
 	}
 
 	err = p.postService.UpdatePost(&post)
 
 	if err != nil {
 		render.JSON(w, r, err)
-		return
 	}
 
 	render.JSON(w, r, &post)
@@ -105,14 +99,12 @@ func (p *postUsecase) Delete(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		render.JSON(w, r, err)
-		return
 	}
 
 	err = p.postService.DeletePost(postID)
 
 	if err != nil {
 		render.JSON(w, r, err)
-		return
 	}
 
 	render.JSON(w, r, "Post Successfully Deleted")
