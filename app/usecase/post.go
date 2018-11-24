@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -70,16 +71,17 @@ func (p *postUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 
 func (p *postUsecase) Update(w http.ResponseWriter, r *http.Request) {
 	var post app.Post
-	postID, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	// postID, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 
-	if err != nil {
-		render.JSON(w, r, err)
-	}
-
-	post.ID = postID
+	// if err != nil {
+	// 	render.JSON(w, r, err)
+	// }
+	postID := chi.URLParam(r, "id")
+	log.Println(postID)
+	// post.ID = postID
 	post.UpdatedAt = time.Now()
 
-	err = json.NewDecoder(r.Body).Decode(&post)
+	err := json.NewDecoder(r.Body).Decode(&post)
 
 	if err != nil {
 		render.JSON(w, r, err)
