@@ -16,7 +16,7 @@ import (
 	"github.com/rbo13/write-it/server"
 )
 
-// const dbName = "write-it"
+const dbName = "writeit"
 
 const dsn = "root:@tcp(127.0.0.1:3306)/?charset=utf8mb4"
 
@@ -33,12 +33,13 @@ func main() {
 
 	db, err := sql.New(dsn)
 
-	if err != nil {
-		log.Printf("Error New: %v", err)
-		return
-	}
+	check(err)
 
-	log.Println(db)
+	defer db.Sqlx.Close()
+
+	db.Create(dbName)
+	db.Use(dbName)
+	db.Migrate()
 
 	inmemory := inmemory.NewInMemoryPostService()
 	postUsecase := usecase.NewPost(inmemory)
@@ -46,4 +47,13 @@ func main() {
 	router.Mount("/api/v1/posts", routes.Routes(router, postUsecase))
 	s := server.New(":1333", router)
 	s.Start()
+}
+
+func check(err error) error {
+	if err != nil {
+		log.Printf("Error occured due to: %v\n\n", err)
+		return err
+	}
+
+	return nil
 }
