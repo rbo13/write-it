@@ -5,7 +5,7 @@ import (
 	mw "github.com/go-chi/chi/middleware"
 	"github.com/go-chi/render"
 
-	"github.com/rbo13/write-it/app/inmemory"
+	"github.com/rbo13/write-it/app/persistence/inmemory"
 	"github.com/rbo13/write-it/app/routes"
 	"github.com/rbo13/write-it/app/usecase"
 	"github.com/rbo13/write-it/server"
