@@ -77,7 +77,7 @@ func (u *userUsecase) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user.ID = userID
-	user.UpdatedAt = time.Now()
+	user.UpdatedAt = time.Now().Unix()
 
 	err = json.NewDecoder(r.Body).Decode(&user)
 
