@@ -2,18 +2,17 @@ package app
 
 import (
 	"fmt"
-	"time"
 )
 
 // Post represents the post inside the application
 type Post struct {
-	ID        int64      `json:"id"`
-	CreatorID int64      `json:"creator_id"`
-	PostTitle string     `json:"post_title"`
-	PostBody  string     `json:"post_body"`
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
-	DeletedAt *time.Time `json:"deleted_at"`
+	ID        int64  `json:"id" db:"id"`
+	CreatorID int64  `json:"creator_id" db:"creator_id"`
+	PostTitle string `json:"post_title" db:"post_title"`
+	PostBody  string `json:"post_body" db:"post_body"`
+	CreatedAt int64  `json:"created_at" db:"created_at"`
+	UpdatedAt int64  `json:"updated_at" db:"updated_at"`
+	DeletedAt int64  `json:"deleted_at" db:"deleted_at"`
 }
 
 // PostService defines the basic service of post

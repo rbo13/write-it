@@ -32,8 +32,8 @@ func (ps *postService) CreatePost(post *app.Post) error {
 		CreatorID: post.CreatorID,
 		PostTitle: post.PostTitle,
 		PostBody:  post.PostBody,
-		CreatedAt: time.Now(),
-		DeletedAt: nil,
+		CreatedAt: time.Now().Unix(),
+		DeletedAt: int64(0),
 	}
 
 	return nil

@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/rbo13/write-it/app"
-	"github.com/rbo13/write-it/app/inmemory"
+	"github.com/rbo13/write-it/app/persistence/inmemory"
 )
 
 func TestInMemoryStore(t *testing.T) {
