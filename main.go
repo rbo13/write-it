@@ -9,7 +9,6 @@ import (
 	mw "github.com/go-chi/chi/middleware"
 	"github.com/go-chi/render"
 
-	"github.com/rbo13/write-it/app/persistence/inmemory"
 	"github.com/rbo13/write-it/app/persistence/sql"
 	"github.com/rbo13/write-it/app/routes"
 	"github.com/rbo13/write-it/app/usecase"
@@ -41,10 +40,16 @@ func main() {
 	db.Use(dbName)
 	db.Migrate()
 
-	inmemory := inmemory.NewInMemoryPostService()
-	postUsecase := usecase.NewPost(inmemory)
+	// inmemory := inmemory.NewInMemoryPostService()
+	// postUsecase := usecase.NewPost(inmemory)
+
+	sqlSrvc := sql.NewSQLService(db.Sqlx)
+
+	postUsecase := usecase.NewPost(sqlSrvc)
+	userUsecase := usecase.NewUser(sqlSrvc)
 
 	router.Mount("/api/v1/posts", routes.Routes(router, postUsecase))
+	router.Mount("/api/v1/users", routes.Routes(router, userUsecase))
 	s := server.New(":1333", router)
 	s.Start()
 }
