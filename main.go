@@ -51,7 +51,7 @@ func main() {
 	router.Mount("/api/v1/posts", routes.Routes(router, postUsecase))
 	router.Mount("/api/v1/users", routes.Routes(router, userUsecase))
 	s := server.New(":1333", router)
-	s.Start()
+	s.StartTLS("./certificates/localhost+2.pem", "./certificates/localhost+2-key.pem")
 }
 
 func check(err error) error {
