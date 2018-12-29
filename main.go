@@ -48,8 +48,10 @@ func main() {
 	postUsecase := usecase.NewPost(sqlSrvc)
 	userUsecase := usecase.NewUser(sqlSrvc)
 
-	router.Mount("/api/v1/posts", routes.Routes(router, postUsecase))
+	// API GROUP
 	router.Mount("/api/v1/users", routes.Routes(router, userUsecase))
+	router.Mount("/api/v1/posts", routes.Routes(router, postUsecase))
+
 	s := server.New(":1333", router)
 	s.StartTLS("./certificates/localhost+2.pem", "./certificates/localhost+2-key.pem")
 }
