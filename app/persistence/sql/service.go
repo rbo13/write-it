@@ -43,19 +43,15 @@ func NewSQLService(db *sqlx.DB) Servicer {
 
 // CreateUser ...
 func (s *Service) CreateUser(user *app.User) error {
-
 	userRes, err := s.UserByEmail(user.EmailAddress)
 
 	if err != nil && err.Error() != errNoResultSet.Error() {
-		log.Println(err)
 		return errUserNotInserted
 	}
 
 	if userRes != nil {
 		return errEmailAlreadyTaken
 	}
-
-	log.Print(userRes)
 
 	tx := s.DB.MustBegin()
 
@@ -67,11 +63,9 @@ func (s *Service) CreateUser(user *app.User) error {
 
 		if err != nil && res == nil {
 			tx.Rollback()
-			log.Println(err)
 			return errUserNotInserted
 		}
 		tx.Commit()
-		return nil
 	}
 
 	return nil
