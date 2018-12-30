@@ -12,3 +12,10 @@ type Handler interface {
 	Update(w http.ResponseWriter, r *http.Request)
 	Delete(w http.ResponseWriter, r *http.Request)
 }
+
+// UserHandler implements the Handler interface with some user related methods.
+type UserHandler interface {
+	Handler
+
+	Login(w http.ResponseWriter, r *http.Request)
+}
