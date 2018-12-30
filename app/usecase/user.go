@@ -116,25 +116,60 @@ func (u *userUsecase) Get(w http.ResponseWriter, r *http.Request) {
 	users, err := u.userService.Users()
 
 	if err != nil {
-		render.JSON(w, r, err.Error())
+		getResponse := userResponse{
+			StatusCode: http.StatusNotFound,
+			Message:    err.Error(),
+			Success:    false,
+			Data:       nil,
+		}
+		render.JSON(w, r, &getResponse)
+		return
 	}
-	render.JSON(w, r, users)
+
+	getResponse := userResponse{
+		StatusCode: http.StatusOK,
+		Message:    "Users successfully retrieved",
+		Success:    true,
+		Data:       users,
+	}
+	render.JSON(w, r, &getResponse)
 }
 
 func (u *userUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 	userID, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 
 	if err != nil {
-		render.JSON(w, r, err.Error())
+
+		getByIDResponse := userResponse{
+			StatusCode: http.StatusUnprocessableEntity,
+			Message:    err.Error(),
+			Success:    false,
+			Data:       nil,
+		}
+		render.JSON(w, r, &getByIDResponse)
+		return
 	}
 
 	user, err := u.userService.User(userID)
 
 	if err != nil {
-		render.JSON(w, r, err.Error())
+		getByIDResponse := userResponse{
+			StatusCode: http.StatusNotFound,
+			Message:    err.Error(),
+			Success:    false,
+			Data:       nil,
+		}
+		render.JSON(w, r, &getByIDResponse)
+		return
 	}
 
-	render.JSON(w, r, user)
+	getByIDResponse := userResponse{
+		StatusCode: http.StatusOK,
+		Message:    "User successfully retrieved",
+		Success:    true,
+		Data:       user,
+	}
+	render.JSON(w, r, &getByIDResponse)
 }
 
 func (u *userUsecase) Update(w http.ResponseWriter, r *http.Request) {
@@ -142,7 +177,15 @@ func (u *userUsecase) Update(w http.ResponseWriter, r *http.Request) {
 	userID, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 
 	if err != nil {
-		render.JSON(w, r, err)
+
+		updateResponse := userResponse{
+			StatusCode: http.StatusUnprocessableEntity,
+			Message:    err.Error(),
+			Success:    false,
+			Data:       nil,
+		}
+		render.JSON(w, r, &updateResponse)
+		return
 	}
 
 	user.ID = userID
@@ -151,30 +194,71 @@ func (u *userUsecase) Update(w http.ResponseWriter, r *http.Request) {
 	err = json.NewDecoder(r.Body).Decode(&user)
 
 	if err != nil {
-		render.JSON(w, r, err)
+
+		updateResponse := userResponse{
+			StatusCode: http.StatusUnprocessableEntity,
+			Message:    err.Error(),
+			Success:    false,
+			Data:       nil,
+		}
+		render.JSON(w, r, &updateResponse)
+		return
 	}
 
 	err = u.userService.UpdateUser(&user)
 
 	if err != nil {
-		render.JSON(w, r, err)
+		updateResponse := userResponse{
+			StatusCode: http.StatusInternalServerError,
+			Message:    err.Error(),
+			Success:    false,
+			Data:       nil,
+		}
+		render.JSON(w, r, &updateResponse)
+		return
 	}
 
-	render.JSON(w, r, &user)
+	updateResponse := userResponse{
+		StatusCode: http.StatusOK,
+		Message:    "User successfully updated",
+		Success:    true,
+		Data:       user,
+	}
+	render.JSON(w, r, &updateResponse)
 }
 
 func (u *userUsecase) Delete(w http.ResponseWriter, r *http.Request) {
 	userID, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 
 	if err != nil {
-		render.JSON(w, r, err)
+		deleteResponse := userResponse{
+			StatusCode: http.StatusUnprocessableEntity,
+			Message:    err.Error(),
+			Success:    false,
+			Data:       nil,
+		}
+		render.JSON(w, r, &deleteResponse)
+		return
 	}
 
 	err = u.userService.DeleteUser(userID)
 
 	if err != nil {
-		render.JSON(w, r, err)
+		deleteResponse := userResponse{
+			StatusCode: http.StatusNotFound,
+			Message:    err.Error(),
+			Success:    false,
+			Data:       nil,
+		}
+		render.JSON(w, r, &deleteResponse)
+		return
 	}
 
-	render.JSON(w, r, "User Successfully Deleted")
+	deleteResponse := userResponse{
+		StatusCode: http.StatusNoContent,
+		Message:    "User successfully deleted",
+		Success:    true,
+		Data:       nil,
+	}
+	render.JSON(w, r, &deleteResponse)
 }
