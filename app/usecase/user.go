@@ -10,18 +10,10 @@ import (
 
 	"github.com/go-chi/render"
 	"github.com/rbo13/write-it/app"
-
-	jwt "github.com/dgrijalva/jwt-go"
 )
 
 type userUsecase struct {
 	userService app.UserService
-}
-
-// JWTData represents the jwt for our authentication
-type JWTData struct {
-	jwt.StandardClaims
-	CustomClaims map[string]string `json:"custom,omitempty"`
 }
 
 type userResponse struct {
@@ -31,8 +23,6 @@ type userResponse struct {
 	Data       interface{} `json:"data"`
 	AuthToken  string      `json:"auth_token"`
 }
-
-const jwtSecret = "5f7532af1ee4524945250f694b5bd06f44f9127bfc35924c457dfa7f68356798319d2d2c4bdce5aaee390cdc731585285e1e374fc1a88dcdbe3f21320b602aba"
 
 // NewUser ...
 func NewUser(userService app.UserService) app.UserHandler {
@@ -116,20 +106,7 @@ func (u *userUsecase) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// create a signing using JWT
-	claims := JWTData{
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour).Unix(),
-		},
-
-		CustomClaims: map[string]string{
-			"user_id":    strconv.Itoa(int(userResp.ID)),
-			"user_email": userResp.EmailAddress,
-			"created_at": strconv.Itoa(int(userResp.CreatedAt)),
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	authToken, err := token.SignedString([]byte(jwtSecret))
+	authToken, err := u.userService.GenerateAuthToken(userResp)
 
 	if err != nil {
 		loginResp := userResponse{
