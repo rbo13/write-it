@@ -3,8 +3,10 @@ package sql
 import (
 	"errors"
 	"log"
+	"strconv"
 	"time"
 
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/jmoiron/sqlx"
 	"github.com/rbo13/write-it/app"
 	"golang.org/x/crypto/bcrypt"
@@ -33,6 +35,14 @@ type Service struct {
 	UserSrvc *app.User
 	PostSrvc *app.Post
 }
+
+// JWTData represents the jwt for our authentication
+type JWTData struct {
+	jwt.StandardClaims
+	CustomClaims map[string]string `json:"custom,omitempty"`
+}
+
+const jwtSecret = "5f7532af1ee4524945250f694b5bd06f44f9127bfc35924c457dfa7f68356798319d2d2c4bdce5aaee390cdc731585285e1e374fc1a88dcdbe3f21320b602aba"
 
 // NewSQLService ...
 func NewSQLService(db *sqlx.DB) Servicer {
@@ -130,6 +140,24 @@ func (s *Service) Login(email, password string) (*app.User, error) {
 	}
 
 	return &user, nil
+}
+
+// GenerateAuthToken ...
+func (s *Service) GenerateAuthToken(user *app.User) (string, error) {
+	claims := JWTData{
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Hour).Unix(),
+		},
+
+		CustomClaims: map[string]string{
+			"user_id":    strconv.Itoa(int(user.ID)),
+			"user_email": user.EmailAddress,
+			"created_at": strconv.Itoa(int(user.CreatedAt)),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte(jwtSecret))
 }
 
 // Users ...

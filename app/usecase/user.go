@@ -21,6 +21,7 @@ type userResponse struct {
 	Message    string      `json:"message"`
 	Success    bool        `json:"success"`
 	Data       interface{} `json:"data"`
+	AuthToken  string      `json:"auth_token"`
 }
 
 // NewUser ...
@@ -82,6 +83,7 @@ func (u *userUsecase) Login(w http.ResponseWriter, r *http.Request) {
 			Message:    err.Error(),
 			Success:    false,
 			Data:       nil,
+			AuthToken:  "",
 		}
 
 		render.JSON(w, r, &loginResp)
@@ -96,6 +98,23 @@ func (u *userUsecase) Login(w http.ResponseWriter, r *http.Request) {
 			Message:    err.Error(),
 			Success:    false,
 			Data:       nil,
+			AuthToken:  "",
+		}
+
+		render.JSON(w, r, &loginResp)
+		return
+	}
+
+	// create a signing using JWT
+	authToken, err := u.userService.GenerateAuthToken(userResp)
+
+	if err != nil {
+		loginResp := userResponse{
+			StatusCode: http.StatusForbidden,
+			Message:    err.Error(),
+			Success:    false,
+			Data:       nil,
+			AuthToken:  "",
 		}
 
 		render.JSON(w, r, &loginResp)
@@ -107,6 +126,7 @@ func (u *userUsecase) Login(w http.ResponseWriter, r *http.Request) {
 		Message:    "Logged in successfully",
 		Success:    true,
 		Data:       userResp,
+		AuthToken:  authToken,
 	}
 
 	render.JSON(w, r, &loginResp)
