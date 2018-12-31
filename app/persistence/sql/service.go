@@ -106,13 +106,13 @@ func (s *Service) UserByEmail(email string) (*app.User, error) {
 
 // Login ...
 func (s *Service) Login(email, password string) (*app.User, error) {
-
 	if email == "" || password == "" {
 		return nil, errMissingCredentials
 	}
 
 	user := app.User{}
-	// first we get a user using the email
+
+	// We get a user using the email
 	err := s.DB.Get(&user, "SELECT password FROM users WHERE email = ? LIMIT 1;", email)
 
 	if err != nil {
@@ -121,16 +121,12 @@ func (s *Service) Login(email, password string) (*app.User, error) {
 
 	passwordsEqual := s.ComparePasswords(user.Password, []byte(password))
 
-	if !passwordsEqual {
-		log.Println("Credentials invalid: " + err.Error())
-		return nil, errCredentialsIncorrect
-	}
+	if passwordsEqual {
+		err = s.DB.Get(&user, "SELECT * FROM users WHERE email = ? AND password = ? LIMIT 1;", email, user.Password)
 
-	// second we query again to get all the user information
-	err = s.DB.Get(&user, "SELECT * FROM users WHERE email = ? AND password = ? LIMIT 1;", email, user.Password)
-
-	if err != nil {
-		return nil, err
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &user, nil
