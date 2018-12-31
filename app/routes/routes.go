@@ -11,6 +11,7 @@ func User(r chi.Router, handler app.UserHandler) chi.Router {
 	r.Post("/create", handler.Create)
 	r.Post("/login", handler.Login)
 	r.Get("/", handler.Get)
+	r.Get("/{id}", handler.GetByID)
 
 	// r.Route("/{id}", func(r chi.Router) {
 	// 	r.Get("/", handler.GetByID)
