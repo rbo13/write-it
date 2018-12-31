@@ -16,6 +16,7 @@ type UserService interface {
 	CreateUser(*User) error
 	User(id int64) (*User, error)
 	UserByEmail(email string) (*User, error)
+	Login(email, password string) (*User, error)
 	Users() ([]*User, error)
 	UpdateUser(*User) error
 	DeleteUser(id int64) error

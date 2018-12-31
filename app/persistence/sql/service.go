@@ -11,12 +11,14 @@ import (
 )
 
 var (
-	errUserNotInserted   = errors.New("Failed to insert the user")
-	errUserUpdate        = errors.New("Failed to updated the user")
-	errUserDelete        = errors.New("Failed to delete the user")
-	errEmailAlreadyTaken = errors.New("Email Address is already taken")
-	errNoResultSet       = errors.New("sql: no rows in result set")
-	errEmailRequired     = errors.New("Email is required")
+	errUserNotInserted      = errors.New("Failed to insert the user")
+	errUserUpdate           = errors.New("Failed to updated the user")
+	errUserDelete           = errors.New("Failed to delete the user")
+	errEmailAlreadyTaken    = errors.New("Email Address is already taken")
+	errNoResultSet          = errors.New("sql: no rows in result set")
+	errEmailRequired        = errors.New("Email is required")
+	errMissingCredentials   = errors.New("Email or Password is missing")
+	errCredentialsIncorrect = errors.New("Email or Password is invalid")
 )
 
 // Servicer ...
@@ -97,6 +99,34 @@ func (s *Service) UserByEmail(email string) (*app.User, error) {
 
 	if err != nil {
 		return nil, err
+	}
+
+	return &user, nil
+}
+
+// Login ...
+func (s *Service) Login(email, password string) (*app.User, error) {
+	if email == "" || password == "" {
+		return nil, errMissingCredentials
+	}
+
+	user := app.User{}
+
+	// We get a user using the email
+	err := s.DB.Get(&user, "SELECT password FROM users WHERE email = ? LIMIT 1;", email)
+
+	if err != nil {
+		return nil, err
+	}
+
+	passwordsEqual := s.ComparePasswords(user.Password, []byte(password))
+
+	if passwordsEqual {
+		err = s.DB.Get(&user, "SELECT * FROM users WHERE email = ? AND password = ? LIMIT 1;", email, user.Password)
+
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &user, nil

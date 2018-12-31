@@ -88,7 +88,7 @@ func (u *userUsecase) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userResp, err := u.userService.UserByEmail(user.EmailAddress)
+	userResp, err := u.userService.Login(user.EmailAddress, user.Password)
 
 	if err != nil {
 		loginResp := userResponse{
