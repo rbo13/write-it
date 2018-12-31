@@ -20,6 +20,7 @@ type UserService interface {
 	Users() ([]*User, error)
 	UpdateUser(*User) error
 	DeleteUser(id int64) error
+	GenerateAuthToken(*User) (string, error)
 }
 
 // TableName represents the table name of user
