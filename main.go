@@ -15,9 +15,10 @@ import (
 	"github.com/rbo13/write-it/server"
 )
 
-const dbName = "writeit"
-
-const dsn = "root:@tcp(127.0.0.1:3306)/?charset=utf8mb4"
+const (
+	dbName = "writeit"
+	dsn    = "root:@tcp(127.0.0.1:3306)/?charset=utf8mb4"
+)
 
 func main() {
 	router := chi.NewRouter()
@@ -48,9 +49,21 @@ func main() {
 	postUsecase := usecase.NewPost(sqlSrvc)
 	userUsecase := usecase.NewUser(sqlSrvc)
 
-	// API GROUP
-	router.Mount("/api/v1/users", routes.User(router, userUsecase))
-	router.Mount("/api/v1/posts", routes.Post(router, postUsecase))
+	// Protected routes (API Group)
+	router.Group(func(r chi.Router) {
+		// TODO :: Seek, verify and validate JWT tokens
+		// custom jwt verifier middleware
+
+		// TODO :: Handle valid / invalid tokens. In this example, we use
+		// the provided authenticator middleware, but you can write your
+		// own very easily, look at the Authenticator method in jwtauth.go
+		// and tweak it, its not scary.
+		// custom jwt middleware authenticator
+
+		// API GROUP
+		r.Mount("/api/v1/users", routes.User(router, userUsecase))
+		r.Mount("/api/v1/posts", routes.Post(router, postUsecase))
+	})
 
 	s := server.New(":1333", router)
 	s.StartTLS("./certificates/localhost+2.pem", "./certificates/localhost+2-key.pem")
