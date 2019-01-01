@@ -38,26 +38,6 @@ type Service struct {
 	TokenAuth *jwtauth.JWTAuth
 }
 
-// JWTData represents the jwt for our authentication
-type JWTData struct {
-	jwt.StandardClaims
-	CustomClaims map[string]string `json:"custom,omitempty"`
-}
-
-const jwtSecret = "5f7532af1ee4524945250f694b5bd06f44f9127bfc35924c457dfa7f68356798319d2d2c4bdce5aaee390cdc731585285e1e374fc1a88dcdbe3f21320b602aba"
-
-// TokenAuth represents a signed token
-// var TokenAuth *jwtauth.JWTAuth
-//
-// func init() {
-// 	TokenAuth = jwtauth.New("HS256", []byte(jwtSecret), nil)
-//
-// 	// // For debugging/example purposes, we generate and print
-// 	// // a sample jwt token with claims `user_id:123` here:
-// 	// _, tokenString, _ := tokenAuth.Encode(jwt.MapClaims{"user_id": 123})
-// 	// fmt.Printf("DEBUG: a sample jwt is %s\n\n", tokenString)
-// }
-
 // NewSQLService ...
 func NewSQLService(db *sqlx.DB, jwtService *jwtservice.JWT) Servicer {
 	return &Service{
@@ -169,26 +149,12 @@ func (s *Service) GenerateAuthToken(user *app.User) (string, error) {
 	jwtauth.SetExpiryIn(claims, 1*time.Hour)
 	jwtauth.SetIssuedNow(claims)
 
-	_, tokenString, err := s.TokenAuth.Encode(claims)
+	_, authToken, err := s.TokenAuth.Encode(claims)
 	if err != nil {
 		return "", err
 	}
 
-	return tokenString, nil
-	// claims := JWTData{
-	// 	StandardClaims: jwt.StandardClaims{
-	// 		ExpiresAt: time.Now().Add(time.Hour).Unix(),
-	// 	},
-	//
-	// 	CustomClaims: map[string]string{
-	// 		"user_id":    strconv.Itoa(int(user.ID)),
-	// 		"user_email": user.EmailAddress,
-	// 		"created_at": strconv.Itoa(int(user.CreatedAt)),
-	// 	},
-	// }
-	//
-	// token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	// return token.SignedString([]byte(jwtSecret))
+	return authToken, nil
 }
 
 // Users ...
