@@ -3,12 +3,13 @@ package sql
 import (
 	"errors"
 	"log"
-	"strconv"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/go-chi/jwtauth"
 	"github.com/jmoiron/sqlx"
 	"github.com/rbo13/write-it/app"
+	"github.com/rbo13/write-it/app/jwtservice"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -31,25 +32,19 @@ type Servicer interface {
 
 // Service ...
 type Service struct {
-	DB       *sqlx.DB
-	UserSrvc *app.User
-	PostSrvc *app.Post
+	DB        *sqlx.DB
+	UserSrvc  *app.User
+	PostSrvc  *app.Post
+	TokenAuth *jwtauth.JWTAuth
 }
-
-// JWTData represents the jwt for our authentication
-type JWTData struct {
-	jwt.StandardClaims
-	CustomClaims map[string]string `json:"custom,omitempty"`
-}
-
-const jwtSecret = "5f7532af1ee4524945250f694b5bd06f44f9127bfc35924c457dfa7f68356798319d2d2c4bdce5aaee390cdc731585285e1e374fc1a88dcdbe3f21320b602aba"
 
 // NewSQLService ...
-func NewSQLService(db *sqlx.DB) Servicer {
+func NewSQLService(db *sqlx.DB, jwtService *jwtservice.JWT) Servicer {
 	return &Service{
-		DB:       db,
-		UserSrvc: new(app.User),
-		PostSrvc: new(app.Post),
+		DB:        db,
+		UserSrvc:  new(app.User),
+		PostSrvc:  new(app.Post),
+		TokenAuth: jwtService.TokenAuth,
 	}
 }
 
@@ -144,20 +139,22 @@ func (s *Service) Login(email, password string) (*app.User, error) {
 
 // GenerateAuthToken ...
 func (s *Service) GenerateAuthToken(user *app.User) (string, error) {
-	claims := JWTData{
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour).Unix(),
-		},
-
-		CustomClaims: map[string]string{
-			"user_id":    strconv.Itoa(int(user.ID)),
-			"user_email": user.EmailAddress,
-			"created_at": strconv.Itoa(int(user.CreatedAt)),
-		},
+	claims := jwt.MapClaims{
+		"user_id":       user.ID,
+		"email":         user.EmailAddress,
+		"authenticated": true,
+		"created_at":    user.CreatedAt,
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(jwtSecret))
+	jwtauth.SetExpiryIn(claims, 1*time.Hour)
+	jwtauth.SetIssuedNow(claims)
+
+	_, authToken, err := s.TokenAuth.Encode(claims)
+	if err != nil {
+		return "", err
+	}
+
+	return authToken, nil
 }
 
 // Users ...

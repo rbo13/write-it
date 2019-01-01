@@ -7,9 +7,6 @@ import (
 
 // User sets the user related routes
 func User(r chi.Router, handler app.UserHandler) chi.Router {
-
-	r.Post("/create", handler.Create)
-	r.Post("/login", handler.Login)
 	r.Get("/", handler.Get)
 	r.Get("/{id}", handler.GetByID)
 

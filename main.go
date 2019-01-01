@@ -7,8 +7,10 @@ import (
 
 	"github.com/go-chi/chi"
 	mw "github.com/go-chi/chi/middleware"
+	"github.com/go-chi/jwtauth"
 	"github.com/go-chi/render"
 
+	"github.com/rbo13/write-it/app/jwtservice"
 	"github.com/rbo13/write-it/app/persistence/sql"
 	"github.com/rbo13/write-it/app/routes"
 	"github.com/rbo13/write-it/app/usecase"
@@ -44,25 +46,29 @@ func main() {
 	// inmemory := inmemory.NewInMemoryPostService()
 	// postUsecase := usecase.NewPost(inmemory)
 
-	sqlSrvc := sql.NewSQLService(db.Sqlx)
+	jwtService := jwtservice.New()
+	sqlSrvc := sql.NewSQLService(db.Sqlx, jwtService)
 
 	postUsecase := usecase.NewPost(sqlSrvc)
 	userUsecase := usecase.NewUser(sqlSrvc)
 
+	router.Post("/register", userUsecase.Create)
+	router.Post("/login", userUsecase.Login)
+
 	// Protected routes (API Group)
 	router.Group(func(r chi.Router) {
-		// TODO :: Seek, verify and validate JWT tokens
-		// custom jwt verifier middleware
-
-		// TODO :: Handle valid / invalid tokens. In this example, we use
-		// the provided authenticator middleware, but you can write your
-		// own very easily, look at the Authenticator method in jwtauth.go
-		// and tweak it, its not scary.
-		// custom jwt middleware authenticator
+		// Boot up JWT middleware
+		r.Use(jwtauth.Verifier(jwtService.TokenAuth))
+		r.Use(jwtauth.Authenticator)
 
 		// API GROUP
 		r.Mount("/api/v1/users", routes.User(router, userUsecase))
 		r.Mount("/api/v1/posts", routes.Post(router, postUsecase))
+
+		// r.Get("/dummy", func(w http.ResponseWriter, r *http.Request) {
+		// 	_, claims, _ := jwtauth.FromContext(r.Context())
+		// 	w.Write([]byte(fmt.Sprintf("protected area. hi %v", claims["email"])))
+		// })
 	})
 
 	s := server.New(":1333", router)
