@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/jwtauth"
 	"github.com/go-chi/render"
 
+	"github.com/rbo13/write-it/app/jwtservice"
 	"github.com/rbo13/write-it/app/persistence/sql"
 	"github.com/rbo13/write-it/app/routes"
 	"github.com/rbo13/write-it/app/usecase"
@@ -47,7 +48,8 @@ func main() {
 	// inmemory := inmemory.NewInMemoryPostService()
 	// postUsecase := usecase.NewPost(inmemory)
 
-	sqlSrvc := sql.NewSQLService(db.Sqlx)
+	jwtService := jwtservice.New()
+	sqlSrvc := sql.NewSQLService(db.Sqlx, jwtService)
 
 	postUsecase := usecase.NewPost(sqlSrvc)
 	userUsecase := usecase.NewUser(sqlSrvc)
@@ -56,7 +58,7 @@ func main() {
 	router.Group(func(r chi.Router) {
 		// TODO :: Seek, verify and validate JWT tokens
 		// custom jwt verifier middleware
-		r.Use(jwtauth.Verifier(sql.TokenAuth))
+		r.Use(jwtauth.Verifier(jwtService.TokenAuth))
 
 		// TODO :: Handle valid / invalid tokens. In this example, we use
 		// the provided authenticator middleware, but you can write your
