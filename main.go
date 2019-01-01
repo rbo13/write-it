@@ -1,9 +1,7 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"net/http"
 
 	_ "github.com/go-sql-driver/mysql"
 
@@ -54,27 +52,23 @@ func main() {
 	postUsecase := usecase.NewPost(sqlSrvc)
 	userUsecase := usecase.NewUser(sqlSrvc)
 
+	router.Post("/register", userUsecase.Create)
+	router.Post("/login", userUsecase.Login)
+
 	// Protected routes (API Group)
 	router.Group(func(r chi.Router) {
-		// TODO :: Seek, verify and validate JWT tokens
-		// custom jwt verifier middleware
+		// Boot up JWT middleware
 		r.Use(jwtauth.Verifier(jwtService.TokenAuth))
-
-		// TODO :: Handle valid / invalid tokens. In this example, we use
-		// the provided authenticator middleware, but you can write your
-		// own very easily, look at the Authenticator method in jwtauth.go
-		// and tweak it, its not scary.
-		// custom jwt middleware authenticator
 		r.Use(jwtauth.Authenticator)
 
 		// API GROUP
 		r.Mount("/api/v1/users", routes.User(router, userUsecase))
 		r.Mount("/api/v1/posts", routes.Post(router, postUsecase))
 
-		r.Get("/dummy", func(w http.ResponseWriter, r *http.Request) {
-			_, claims, _ := jwtauth.FromContext(r.Context())
-			w.Write([]byte(fmt.Sprintf("protected area. hi %v", claims["email"])))
-		})
+		// r.Get("/dummy", func(w http.ResponseWriter, r *http.Request) {
+		// 	_, claims, _ := jwtauth.FromContext(r.Context())
+		// 	w.Write([]byte(fmt.Sprintf("protected area. hi %v", claims["email"])))
+		// })
 	})
 
 	s := server.New(":1333", router)
