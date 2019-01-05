@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi"
+	"github.com/go-chi/jwtauth"
 
 	"github.com/go-chi/render"
 	"github.com/rbo13/write-it/app"
@@ -14,6 +15,13 @@ import (
 
 type postUsecase struct {
 	postService app.PostService
+}
+
+type postResponse struct {
+	StatusCode uint        `json:"status_code"`
+	Message    string      `json:"message"`
+	Success    bool        `json:"success"`
+	Data       interface{} `json:"data"`
 }
 
 // NewPost ...
@@ -26,21 +34,54 @@ func NewPost(postService app.PostService) app.Handler {
 func (p *postUsecase) Create(w http.ResponseWriter, r *http.Request) {
 	var post app.Post
 
-	err := json.NewDecoder(r.Body).Decode(&post)
+	_, claims, err := jwtauth.FromContext(r.Context())
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		postResp := postResponse{
+			StatusCode: http.StatusForbidden,
+			Message:    err.Error(),
+			Success:    false,
+			Data:       nil,
+		}
+		render.JSON(w, r, &postResp)
+		return
+	}
+
+	post.CreatorID = int64(claims["user_id"].(float64))
+
+	err = json.NewDecoder(r.Body).Decode(&post)
+
+	if err != nil {
+		postResp := postResponse{
+			StatusCode: http.StatusUnprocessableEntity,
+			Message:    err.Error(),
+			Success:    false,
+			Data:       nil,
+		}
+		render.JSON(w, r, &postResp)
 		return
 	}
 
 	err = p.postService.CreatePost(&post)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		postResp := postResponse{
+			StatusCode: http.StatusInternalServerError,
+			Message:    err.Error(),
+			Success:    false,
+			Data:       nil,
+		}
+		render.JSON(w, r, &postResp)
 		return
 	}
+	postResp := postResponse{
+		StatusCode: http.StatusOK,
+		Message:    "Post has been created",
+		Success:    true,
+		Data:       post,
+	}
 
-	render.JSON(w, r, post)
+	render.JSON(w, r, &postResp)
 }
 
 func (p *postUsecase) Get(w http.ResponseWriter, r *http.Request) {

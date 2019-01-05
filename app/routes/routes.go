@@ -21,7 +21,7 @@ func User(r chi.Router, handler app.UserHandler) chi.Router {
 // Post sets the post related routes
 func Post(r chi.Router, handler app.Handler) chi.Router {
 
-	// r.Post("/create", handler.Create)
+	r.Post("/create", handler.Create)
 	// r.Get("/", handler.Get)
 
 	// r.Route("/{id}", func(r chi.Router) {

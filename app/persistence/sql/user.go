@@ -24,33 +24,30 @@ var (
 	errCredentialsIncorrect = errors.New("Email or Password is invalid")
 )
 
-// Servicer ...
-type Servicer interface {
+// UserService implements the app.UserService
+type UserService interface {
 	app.UserService
-	app.PostService
 }
 
-// Service ...
-type Service struct {
+// User implements the UserService interface
+type User struct {
 	DB        *sqlx.DB
 	UserSrvc  *app.User
-	PostSrvc  *app.Post
 	TokenAuth *jwtauth.JWTAuth
 }
 
-// NewSQLService ...
-func NewSQLService(db *sqlx.DB, jwtService *jwtservice.JWT) Servicer {
-	return &Service{
+// NewUserSQLService returns the interface that implements the app.UserService
+func NewUserSQLService(db *sqlx.DB, jwtService *jwtservice.JWT) UserService {
+	return &User{
 		DB:        db,
 		UserSrvc:  new(app.User),
-		PostSrvc:  new(app.Post),
 		TokenAuth: jwtService.TokenAuth,
 	}
 }
 
 // CreateUser ...
-func (s *Service) CreateUser(user *app.User) error {
-	userRes, err := s.UserByEmail(user.EmailAddress)
+func (u *User) CreateUser(user *app.User) error {
+	userRes, err := u.UserByEmail(user.EmailAddress)
 
 	if err != nil && err.Error() != errNoResultSet.Error() {
 		return errUserNotInserted
@@ -60,7 +57,7 @@ func (s *Service) CreateUser(user *app.User) error {
 		return errEmailAlreadyTaken
 	}
 
-	tx := s.DB.MustBegin()
+	tx := u.DB.MustBegin()
 
 	if userRes == nil {
 		user.CreatedAt = time.Now().Unix()
@@ -79,10 +76,10 @@ func (s *Service) CreateUser(user *app.User) error {
 }
 
 // User ...
-func (s *Service) User(id int64) (*app.User, error) {
+func (u *User) User(id int64) (*app.User, error) {
 	user := new(app.User)
 
-	err := s.DB.Get(user, "SELECT * FROM users WHERE id = ? LIMIT 1;", id)
+	err := u.DB.Get(user, "SELECT * FROM users WHERE id = ? LIMIT 1;", id)
 
 	if err != nil {
 		return nil, err
@@ -92,7 +89,7 @@ func (s *Service) User(id int64) (*app.User, error) {
 }
 
 // UserByEmail ...
-func (s *Service) UserByEmail(email string) (*app.User, error) {
+func (u *User) UserByEmail(email string) (*app.User, error) {
 
 	if email == "" {
 		return nil, errEmailRequired
@@ -100,7 +97,7 @@ func (s *Service) UserByEmail(email string) (*app.User, error) {
 
 	user := app.User{}
 
-	err := s.DB.Get(&user, "SELECT * FROM users WHERE email = ? LIMIT 1;", email)
+	err := u.DB.Get(&user, "SELECT * FROM users WHERE email = ? LIMIT 1;", email)
 
 	if err != nil {
 		return nil, err
@@ -110,7 +107,7 @@ func (s *Service) UserByEmail(email string) (*app.User, error) {
 }
 
 // Login ...
-func (s *Service) Login(email, password string) (*app.User, error) {
+func (u *User) Login(email, password string) (*app.User, error) {
 	if email == "" || password == "" {
 		return nil, errMissingCredentials
 	}
@@ -118,16 +115,16 @@ func (s *Service) Login(email, password string) (*app.User, error) {
 	user := app.User{}
 
 	// We get a user using the email
-	err := s.DB.Get(&user, "SELECT password FROM users WHERE email = ? LIMIT 1;", email)
+	err := u.DB.Get(&user, "SELECT password FROM users WHERE email = ? LIMIT 1;", email)
 
 	if err != nil {
 		return nil, err
 	}
 
-	passwordsEqual := s.ComparePasswords(user.Password, []byte(password))
+	passwordsEqual := comparePasswords(user.Password, []byte(password))
 
 	if passwordsEqual {
-		err = s.DB.Get(&user, "SELECT * FROM users WHERE email = ? AND password = ? LIMIT 1;", email, user.Password)
+		err = u.DB.Get(&user, "SELECT * FROM users WHERE email = ? AND password = ? LIMIT 1;", email, user.Password)
 
 		if err != nil {
 			return nil, err
@@ -138,7 +135,7 @@ func (s *Service) Login(email, password string) (*app.User, error) {
 }
 
 // GenerateAuthToken ...
-func (s *Service) GenerateAuthToken(user *app.User) (string, error) {
+func (u *User) GenerateAuthToken(user *app.User) (string, error) {
 	claims := jwt.MapClaims{
 		"user_id":       user.ID,
 		"email":         user.EmailAddress,
@@ -149,7 +146,7 @@ func (s *Service) GenerateAuthToken(user *app.User) (string, error) {
 	jwtauth.SetExpiryIn(claims, 1*time.Hour)
 	jwtauth.SetIssuedNow(claims)
 
-	_, authToken, err := s.TokenAuth.Encode(claims)
+	_, authToken, err := u.TokenAuth.Encode(claims)
 	if err != nil {
 		return "", err
 	}
@@ -158,10 +155,10 @@ func (s *Service) GenerateAuthToken(user *app.User) (string, error) {
 }
 
 // Users ...
-func (s *Service) Users() ([]*app.User, error) {
+func (u *User) Users() ([]*app.User, error) {
 	users := []*app.User{}
 
-	err := s.DB.Select(&users, "SELECT * FROM users ORDER BY id DESC;")
+	err := u.DB.Select(&users, "SELECT * FROM users ORDER BY id DESC;")
 
 	if err != nil {
 		return nil, err
@@ -170,10 +167,10 @@ func (s *Service) Users() ([]*app.User, error) {
 }
 
 // UpdateUser ...
-func (s *Service) UpdateUser(user *app.User) error {
+func (u *User) UpdateUser(user *app.User) error {
 	user.UpdatedAt = time.Now().Unix()
 
-	tx := s.DB.MustBegin()
+	tx := u.DB.MustBegin()
 	res := tx.MustExec("UPDATE Customers SET username = ?, email = ?, password = ?, updated_at = ?, WHERE id = ?;", user.Username, user.EmailAddress, user.Password, user.UpdatedAt, user.ID)
 
 	if res == nil {
@@ -186,10 +183,10 @@ func (s *Service) UpdateUser(user *app.User) error {
 }
 
 // DeleteUser ...
-func (s *Service) DeleteUser(id int64) error {
-	tx := s.DB.MustBegin()
+func (u *User) DeleteUser(id int64) error {
+	tx := u.DB.MustBegin()
 
-	res := tx.MustExec("DELETE FROM users WHERE id = $1;", id)
+	res := tx.MustExec("DELETE FROM users WHERE id = ?;", id)
 
 	if res == nil {
 		tx.Rollback()
@@ -197,32 +194,6 @@ func (s *Service) DeleteUser(id int64) error {
 	}
 
 	tx.Commit()
-	return nil
-}
-
-// CreatePost ...
-func (s *Service) CreatePost(post *app.Post) error {
-	return nil
-}
-
-// Post ...
-func (s *Service) Post(id int64) (*app.Post, error) {
-	return nil, nil
-}
-
-// Posts ...
-func (s *Service) Posts() ([]*app.Post, error) {
-
-	return nil, nil
-}
-
-// UpdatePost ...
-func (s *Service) UpdatePost(post *app.Post) error {
-	return nil
-}
-
-// DeletePost ...
-func (s *Service) DeletePost(id int64) error {
 	return nil
 }
 
@@ -238,7 +209,7 @@ func hashPassword(rawPassword string) (hashedPassword string) {
 
 // ComparePasswords compares the hashed and raw password.
 // Returns boolean if equal
-func (Service) ComparePasswords(hashedPassword string, rawPassword []byte) bool {
+func comparePasswords(hashedPassword string, rawPassword []byte) bool {
 	byteHash := []byte(hashedPassword)
 
 	err := bcrypt.CompareHashAndPassword(byteHash, rawPassword)
