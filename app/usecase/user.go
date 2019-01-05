@@ -16,12 +16,17 @@ type userUsecase struct {
 	userService app.UserService
 }
 
-type userResponse struct {
+// UserResponse represents a user response
+type UserResponse struct {
 	StatusCode uint        `json:"status_code"`
 	Message    string      `json:"message"`
 	Success    bool        `json:"success"`
 	Data       interface{} `json:"data"`
-	AuthToken  string      `json:"auth_token"`
+}
+
+type loginResponse struct {
+	UserResponse UserResponse `json:"user_response"`
+	AuthToken    string       `json:"auth_token"`
 }
 
 // NewUser ...
@@ -37,7 +42,7 @@ func (u *userUsecase) Create(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&user)
 
 	if err != nil {
-		createResp := userResponse{
+		createResp := UserResponse{
 			StatusCode: http.StatusUnprocessableEntity,
 			Message:    err.Error(),
 			Success:    false,
@@ -51,7 +56,7 @@ func (u *userUsecase) Create(w http.ResponseWriter, r *http.Request) {
 	err = u.userService.CreateUser(&user)
 
 	if err != nil {
-		createResp := userResponse{
+		createResp := UserResponse{
 			StatusCode: http.StatusInternalServerError,
 			Message:    err.Error(),
 			Success:    false,
@@ -62,7 +67,7 @@ func (u *userUsecase) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createResp := userResponse{
+	createResp := UserResponse{
 		StatusCode: http.StatusOK,
 		Message:    "User successfully registered",
 		Success:    true,
@@ -78,12 +83,14 @@ func (u *userUsecase) Login(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 
-		loginResp := userResponse{
-			StatusCode: http.StatusUnprocessableEntity,
-			Message:    err.Error(),
-			Success:    false,
-			Data:       nil,
-			AuthToken:  "",
+		loginResp := loginResponse{
+			UserResponse: UserResponse{
+				StatusCode: http.StatusUnprocessableEntity,
+				Message:    err.Error(),
+				Success:    false,
+				Data:       nil,
+			},
+			AuthToken: "",
 		}
 
 		render.JSON(w, r, &loginResp)
@@ -93,40 +100,45 @@ func (u *userUsecase) Login(w http.ResponseWriter, r *http.Request) {
 	userResp, err := u.userService.Login(user.EmailAddress, user.Password)
 
 	if err != nil {
-		loginResp := userResponse{
-			StatusCode: http.StatusNotFound,
-			Message:    err.Error(),
-			Success:    false,
-			Data:       nil,
-			AuthToken:  "",
+		loginResp := loginResponse{
+			UserResponse: UserResponse{
+				StatusCode: http.StatusNotFound,
+				Message:    err.Error(),
+				Success:    false,
+				Data:       nil,
+			},
+			AuthToken: "",
 		}
 
 		render.JSON(w, r, &loginResp)
 		return
 	}
 
-	// create a signing using JWT
 	authToken, err := u.userService.GenerateAuthToken(userResp)
 
 	if err != nil {
-		loginResp := userResponse{
-			StatusCode: http.StatusForbidden,
-			Message:    err.Error(),
-			Success:    false,
-			Data:       nil,
-			AuthToken:  "",
+		loginResp := loginResponse{
+			UserResponse: UserResponse{
+				StatusCode: http.StatusBadRequest,
+				Message:    err.Error(),
+				Success:    false,
+				Data:       nil,
+			},
+			AuthToken: "",
 		}
 
 		render.JSON(w, r, &loginResp)
 		return
 	}
 
-	loginResp := userResponse{
-		StatusCode: http.StatusOK,
-		Message:    "Logged in successfully",
-		Success:    true,
-		Data:       userResp,
-		AuthToken:  authToken,
+	loginResp := loginResponse{
+		UserResponse: UserResponse{
+			StatusCode: http.StatusOK,
+			Message:    "Logged in successfully",
+			Success:    true,
+			Data:       userResp,
+		},
+		AuthToken: authToken,
 	}
 
 	render.JSON(w, r, &loginResp)
@@ -136,7 +148,7 @@ func (u *userUsecase) Get(w http.ResponseWriter, r *http.Request) {
 	users, err := u.userService.Users()
 
 	if err != nil {
-		getResponse := userResponse{
+		getResponse := UserResponse{
 			StatusCode: http.StatusNotFound,
 			Message:    err.Error(),
 			Success:    false,
@@ -146,7 +158,7 @@ func (u *userUsecase) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	getResponse := userResponse{
+	getResponse := UserResponse{
 		StatusCode: http.StatusOK,
 		Message:    "Users successfully retrieved",
 		Success:    true,
@@ -159,8 +171,7 @@ func (u *userUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 	userID, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 
 	if err != nil {
-
-		getByIDResponse := userResponse{
+		getByIDResponse := UserResponse{
 			StatusCode: http.StatusUnprocessableEntity,
 			Message:    err.Error(),
 			Success:    false,
@@ -173,7 +184,7 @@ func (u *userUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 	user, err := u.userService.User(userID)
 
 	if err != nil {
-		getByIDResponse := userResponse{
+		getByIDResponse := UserResponse{
 			StatusCode: http.StatusNotFound,
 			Message:    err.Error(),
 			Success:    false,
@@ -183,7 +194,7 @@ func (u *userUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	getByIDResponse := userResponse{
+	getByIDResponse := UserResponse{
 		StatusCode: http.StatusOK,
 		Message:    "User successfully retrieved",
 		Success:    true,
@@ -198,7 +209,7 @@ func (u *userUsecase) Update(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 
-		updateResponse := userResponse{
+		updateResponse := UserResponse{
 			StatusCode: http.StatusUnprocessableEntity,
 			Message:    err.Error(),
 			Success:    false,
@@ -215,7 +226,7 @@ func (u *userUsecase) Update(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 
-		updateResponse := userResponse{
+		updateResponse := UserResponse{
 			StatusCode: http.StatusUnprocessableEntity,
 			Message:    err.Error(),
 			Success:    false,
@@ -228,7 +239,7 @@ func (u *userUsecase) Update(w http.ResponseWriter, r *http.Request) {
 	err = u.userService.UpdateUser(&user)
 
 	if err != nil {
-		updateResponse := userResponse{
+		updateResponse := UserResponse{
 			StatusCode: http.StatusInternalServerError,
 			Message:    err.Error(),
 			Success:    false,
@@ -238,7 +249,7 @@ func (u *userUsecase) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updateResponse := userResponse{
+	updateResponse := UserResponse{
 		StatusCode: http.StatusOK,
 		Message:    "User successfully updated",
 		Success:    true,
@@ -251,7 +262,7 @@ func (u *userUsecase) Delete(w http.ResponseWriter, r *http.Request) {
 	userID, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 
 	if err != nil {
-		deleteResponse := userResponse{
+		deleteResponse := UserResponse{
 			StatusCode: http.StatusUnprocessableEntity,
 			Message:    err.Error(),
 			Success:    false,
@@ -264,7 +275,7 @@ func (u *userUsecase) Delete(w http.ResponseWriter, r *http.Request) {
 	err = u.userService.DeleteUser(userID)
 
 	if err != nil {
-		deleteResponse := userResponse{
+		deleteResponse := UserResponse{
 			StatusCode: http.StatusNotFound,
 			Message:    err.Error(),
 			Success:    false,
@@ -274,7 +285,7 @@ func (u *userUsecase) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	deleteResponse := userResponse{
+	deleteResponse := UserResponse{
 		StatusCode: http.StatusNoContent,
 		Message:    "User successfully deleted",
 		Success:    true,
