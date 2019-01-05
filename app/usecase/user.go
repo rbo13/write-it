@@ -82,15 +82,9 @@ func (u *userUsecase) Login(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-
 		loginResp := loginResponse{
-			UserResponse: UserResponse{
-				StatusCode: http.StatusUnprocessableEntity,
-				Message:    err.Error(),
-				Success:    false,
-				Data:       nil,
-			},
-			AuthToken: "",
+			UserResponse: errorResponse(http.StatusUnprocessableEntity, err.Error()),
+			AuthToken:    "",
 		}
 
 		render.JSON(w, r, &loginResp)
@@ -101,13 +95,8 @@ func (u *userUsecase) Login(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		loginResp := loginResponse{
-			UserResponse: UserResponse{
-				StatusCode: http.StatusNotFound,
-				Message:    err.Error(),
-				Success:    false,
-				Data:       nil,
-			},
-			AuthToken: "",
+			UserResponse: errorResponse(http.StatusNotFound, err.Error()),
+			AuthToken:    "",
 		}
 
 		render.JSON(w, r, &loginResp)
@@ -118,13 +107,8 @@ func (u *userUsecase) Login(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		loginResp := loginResponse{
-			UserResponse: UserResponse{
-				StatusCode: http.StatusBadRequest,
-				Message:    err.Error(),
-				Success:    false,
-				Data:       nil,
-			},
-			AuthToken: "",
+			UserResponse: errorResponse(http.StatusBadRequest, err.Error()),
+			AuthToken:    "",
 		}
 
 		render.JSON(w, r, &loginResp)
@@ -132,13 +116,8 @@ func (u *userUsecase) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	loginResp := loginResponse{
-		UserResponse: UserResponse{
-			StatusCode: http.StatusOK,
-			Message:    "Logged in successfully",
-			Success:    true,
-			Data:       userResp,
-		},
-		AuthToken: authToken,
+		UserResponse: okResponse(http.StatusOK, userResp, "Logged in successfully"),
+		AuthToken:    authToken,
 	}
 
 	render.JSON(w, r, &loginResp)
@@ -292,4 +271,26 @@ func (u *userUsecase) Delete(w http.ResponseWriter, r *http.Request) {
 		Data:       nil,
 	}
 	render.JSON(w, r, &deleteResponse)
+}
+
+func errorResponse(statusCode uint, message string) (errResponse UserResponse) {
+	errResponse = UserResponse{
+		StatusCode: statusCode,
+		Message:    message,
+		Success:    false,
+		Data:       nil,
+	}
+
+	return errResponse
+}
+
+func okResponse(statusCode uint, data interface{}, message string) (okResponse UserResponse) {
+	okResponse = UserResponse{
+		StatusCode: statusCode,
+		Message:    message,
+		Success:    true,
+		Data:       data,
+	}
+
+	return okResponse
 }
