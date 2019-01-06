@@ -47,12 +47,11 @@ func main() {
 	// postUsecase := usecase.NewPost(inmemory)
 
 	jwtService := jwtservice.New()
-	// sqlSrvc := sql.NewSQLService(db.Sqlx)
-
 	userSQLSrvc := sql.NewUserSQLService(db.Sqlx, jwtService)
+	postSQLSrvc := sql.NewPostSQLService(db.Sqlx)
 
-	// postUsecase := usecase.NewPost(sqlSrvc)
 	userUsecase := usecase.NewUser(userSQLSrvc)
+	postUsecase := usecase.NewPost(postSQLSrvc)
 
 	router.Post("/register", userUsecase.Create)
 	router.Post("/login", userUsecase.Login)
@@ -65,7 +64,7 @@ func main() {
 
 		// API GROUP
 		r.Mount("/api/v1/users", routes.User(router, userUsecase))
-		// r.Mount("/api/v1/posts", routes.Post(router, postUsecase))
+		r.Mount("/api/v1/posts", routes.Post(router, postUsecase))
 
 		// r.Get("/dummy", func(w http.ResponseWriter, r *http.Request) {
 		// 	_, claims, _ := jwtauth.FromContext(r.Context())
