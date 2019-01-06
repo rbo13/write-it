@@ -24,6 +24,7 @@ func Post(r chi.Router, handler app.Handler) chi.Router {
 	r.Post("/create", handler.Create)
 	r.Get("/", handler.Get)
 	r.Get("/{id}", handler.GetByID)
+	r.Put("/{id}", handler.Update)
 	r.Delete("/{id}", handler.Delete)
 
 	// r.Route("/{id}", func(r chi.Router) {
