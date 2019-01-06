@@ -12,6 +12,7 @@ var (
 	errEmpty       = errors.New("error: Post is required")
 	errNotInserted = errors.New("error: Not inserted")
 	errNoID        = errors.New("error: ID is required")
+	errPostDelete  = errors.New("error: Post deletion")
 )
 
 // PostService implements the app.UserService
@@ -89,5 +90,15 @@ func (p *Post) UpdatePost(post *app.Post) error {
 
 // DeletePost ...
 func (p *Post) DeletePost(id int64) error {
+	tx := p.DB.MustBegin()
+
+	res := tx.MustExec("DELETE FROM posts WHERE id = ?;", id)
+
+	if res == nil {
+		tx.Rollback()
+		return errPostDelete
+	}
+
+	tx.Commit()
 	return nil
 }
