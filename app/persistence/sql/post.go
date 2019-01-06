@@ -72,8 +72,14 @@ func (p *Post) Post(id int64) (*app.Post, error) {
 
 // Posts ...
 func (p *Post) Posts() ([]*app.Post, error) {
+	posts := []*app.Post{}
 
-	return nil, nil
+	err := p.DB.Select(&posts, "SELECT * FROM posts ORDER BY id DESC;")
+
+	if err != nil {
+		return nil, err
+	}
+	return posts, nil
 }
 
 // UpdatePost ...
