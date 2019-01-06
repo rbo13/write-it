@@ -11,6 +11,7 @@ import (
 var (
 	errEmpty       = errors.New("error: Post is required")
 	errNotInserted = errors.New("error: Not inserted")
+	errNoID        = errors.New("error: ID is required")
 )
 
 // PostService implements the app.UserService
@@ -54,7 +55,19 @@ func (p *Post) CreatePost(post *app.Post) error {
 
 // Post ...
 func (p *Post) Post(id int64) (*app.Post, error) {
-	return nil, nil
+	if id <= 0 {
+		return nil, errNoID
+	}
+
+	post := new(app.Post)
+
+	err := p.DB.Get(post, "SELECT * FROM posts WHERE id = ? LIMIT 1;", id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return post, nil
 }
 
 // Posts ...
