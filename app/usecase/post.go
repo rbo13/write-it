@@ -87,9 +87,23 @@ func (p *postUsecase) Get(w http.ResponseWriter, r *http.Request) {
 	posts, err := p.postService.Posts()
 
 	if err != nil {
-		render.JSON(w, r, err.Error())
+		postResp := postResponse{
+			StatusCode: http.StatusInternalServerError,
+			Message:    err.Error(),
+			Success:    false,
+			Data:       nil,
+		}
+		render.JSON(w, r, &postResp)
+		return
 	}
-	render.JSON(w, r, posts)
+
+	postResp := postResponse{
+		StatusCode: http.StatusOK,
+		Message:    "Posts successfully retrieved",
+		Success:    true,
+		Data:       posts,
+	}
+	render.JSON(w, r, &postResp)
 }
 
 func (p *postUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
