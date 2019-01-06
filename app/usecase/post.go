@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/jwtauth"
@@ -117,8 +116,21 @@ func (p *postUsecase) Update(w http.ResponseWriter, r *http.Request) {
 		render.JSON(w, r, err)
 	}
 
+	_, claims, err := jwtauth.FromContext(r.Context())
+
+	if err != nil {
+		postResp := postResponse{
+			StatusCode: http.StatusForbidden,
+			Message:    err.Error(),
+			Success:    false,
+			Data:       nil,
+		}
+		render.JSON(w, r, &postResp)
+		return
+	}
+
 	post.ID = postID
-	post.UpdatedAt = time.Now().Unix()
+	post.CreatorID = int64(claims["user_id"].(float64))
 
 	err = json.NewDecoder(r.Body).Decode(&post)
 
