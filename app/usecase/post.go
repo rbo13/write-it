@@ -105,7 +105,6 @@ func (p *postUsecase) Update(w http.ResponseWriter, r *http.Request) {
 	postID, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 
 	if err != nil {
-
 		config := response.Configure(err.Error(), http.StatusNotFound, nil)
 		response.JSONError(w, r, config)
 		return
@@ -140,7 +139,6 @@ func (p *postUsecase) Update(w http.ResponseWriter, r *http.Request) {
 
 	config := response.Configure("Post Successfully Updated", http.StatusOK, post)
 	response.JSONOK(w, r, config)
-	return
 }
 
 func (p *postUsecase) Delete(w http.ResponseWriter, r *http.Request) {
