@@ -37,8 +37,8 @@ func (p *postUsecase) Create(w http.ResponseWriter, r *http.Request) {
 	_, claims, err := jwtauth.FromContext(r.Context())
 
 	if err != nil {
-		config := configureResponse(w, r, err.Error(), http.StatusForbidden, nil)
-		response.JSONError(config)
+		config := response.Configure(err.Error(), http.StatusForbidden, nil)
+		response.JSONError(w, r, config)
 		return
 	}
 
@@ -48,21 +48,21 @@ func (p *postUsecase) Create(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 
-		config := configureResponse(w, r, err.Error(), http.StatusBadRequest, nil)
-		response.JSONError(config)
+		config := response.Configure(err.Error(), http.StatusBadRequest, nil)
+		response.JSONError(w, r, config)
 		return
 	}
 
 	err = p.postService.CreatePost(&post)
 
 	if err != nil {
-		config := configureResponse(w, r, err.Error(), http.StatusBadRequest, nil)
-		response.JSONError(config)
+		config := response.Configure(err.Error(), http.StatusBadRequest, nil)
+		response.JSONError(w, r, config)
 		return
 	}
 
-	config := configureResponse(w, r, "Post created successfully", http.StatusOK, post)
-	response.JSONOK(config)
+	config := response.Configure("Post created successfully", http.StatusOK, post)
+	response.JSONOK(w, r, config)
 	return
 }
 
@@ -71,13 +71,13 @@ func (p *postUsecase) Get(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 
-		config := configureResponse(w, r, err.Error(), http.StatusInternalServerError, nil)
-		response.JSONError(config)
+		config := response.Configure(err.Error(), http.StatusInternalServerError, nil)
+		response.JSONError(w, r, config)
 		return
 	}
 
-	config := configureResponse(w, r, "Posts successfully retrieved", http.StatusOK, posts)
-	response.JSONOK(config)
+	config := response.Configure("Posts successfully retrieved", http.StatusOK, posts)
+	response.JSONOK(w, r, config)
 	return
 }
 
@@ -150,14 +150,4 @@ func (p *postUsecase) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	render.JSON(w, r, "Post Successfully Deleted")
-}
-
-func configureResponse(w http.ResponseWriter, r *http.Request, message string, statusCode uint, data interface{}) response.Config {
-	return response.Config{
-		W:          w,
-		R:          r,
-		Message:    message,
-		StatusCode: statusCode,
-		Data:       data,
-	}
 }
