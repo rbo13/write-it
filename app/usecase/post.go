@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-chi/render"
 	"github.com/rbo13/write-it/app"
+	"github.com/rbo13/write-it/app/response"
 )
 
 type postUsecase struct {
@@ -36,13 +37,8 @@ func (p *postUsecase) Create(w http.ResponseWriter, r *http.Request) {
 	_, claims, err := jwtauth.FromContext(r.Context())
 
 	if err != nil {
-		postResp := postResponse{
-			StatusCode: http.StatusForbidden,
-			Message:    err.Error(),
-			Success:    false,
-			Data:       nil,
-		}
-		render.JSON(w, r, &postResp)
+		config := configureResponse(w, r, err.Error(), http.StatusForbidden, nil)
+		response.JSONError(config)
 		return
 	}
 
@@ -51,59 +47,38 @@ func (p *postUsecase) Create(w http.ResponseWriter, r *http.Request) {
 	err = json.NewDecoder(r.Body).Decode(&post)
 
 	if err != nil {
-		postResp := postResponse{
-			StatusCode: http.StatusUnprocessableEntity,
-			Message:    err.Error(),
-			Success:    false,
-			Data:       nil,
-		}
-		render.JSON(w, r, &postResp)
+
+		config := configureResponse(w, r, err.Error(), http.StatusBadRequest, nil)
+		response.JSONError(config)
 		return
 	}
 
 	err = p.postService.CreatePost(&post)
 
 	if err != nil {
-		postResp := postResponse{
-			StatusCode: http.StatusInternalServerError,
-			Message:    err.Error(),
-			Success:    false,
-			Data:       nil,
-		}
-		render.JSON(w, r, &postResp)
+		config := configureResponse(w, r, err.Error(), http.StatusBadRequest, nil)
+		response.JSONError(config)
 		return
 	}
-	postResp := postResponse{
-		StatusCode: http.StatusOK,
-		Message:    "Post has been created",
-		Success:    true,
-		Data:       post,
-	}
 
-	render.JSON(w, r, &postResp)
+	config := configureResponse(w, r, "Post created successfully", http.StatusOK, post)
+	response.JSONOK(config)
+	return
 }
 
 func (p *postUsecase) Get(w http.ResponseWriter, r *http.Request) {
 	posts, err := p.postService.Posts()
 
 	if err != nil {
-		postResp := postResponse{
-			StatusCode: http.StatusInternalServerError,
-			Message:    err.Error(),
-			Success:    false,
-			Data:       nil,
-		}
-		render.JSON(w, r, &postResp)
+
+		config := configureResponse(w, r, err.Error(), http.StatusInternalServerError, nil)
+		response.JSONError(config)
 		return
 	}
 
-	postResp := postResponse{
-		StatusCode: http.StatusOK,
-		Message:    "Posts successfully retrieved",
-		Success:    true,
-		Data:       posts,
-	}
-	render.JSON(w, r, &postResp)
+	config := configureResponse(w, r, "Posts successfully retrieved", http.StatusOK, posts)
+	response.JSONOK(config)
+	return
 }
 
 func (p *postUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
@@ -175,4 +150,14 @@ func (p *postUsecase) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	render.JSON(w, r, "Post Successfully Deleted")
+}
+
+func configureResponse(w http.ResponseWriter, r *http.Request, message string, statusCode uint, data interface{}) response.Config {
+	return response.Config{
+		W:          w,
+		R:          r,
+		Message:    message,
+		StatusCode: statusCode,
+		Data:       data,
+	}
 }
