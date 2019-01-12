@@ -7,7 +7,7 @@ import (
 
 // User sets the user related routes
 func User(r chi.Router, handler app.UserHandler) chi.Router {
-	r.Get("/all", handler.Get)
+	r.Get("/", handler.Get)
 	r.Get("/{id}", handler.GetByID)
 
 	// r.Route("/{id}", func(r chi.Router) {
