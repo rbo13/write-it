@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-chi/render"
 	"github.com/rbo13/write-it/app"
+	"github.com/rbo13/write-it/app/response"
 )
 
 type userUsecase struct {
@@ -127,13 +128,8 @@ func (u *userUsecase) Get(w http.ResponseWriter, r *http.Request) {
 	users, err := u.userService.Users()
 
 	if err != nil {
-		getResponse := UserResponse{
-			StatusCode: http.StatusNotFound,
-			Message:    err.Error(),
-			Success:    false,
-			Data:       nil,
-		}
-		render.JSON(w, r, &getResponse)
+		config := response.Configure(err.Error(), http.StatusNotFound, nil)
+		response.JSONError(w, r, config)
 		return
 	}
 

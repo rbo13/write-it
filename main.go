@@ -63,8 +63,13 @@ func main() {
 		r.Use(jwtauth.Authenticator)
 
 		// API GROUP
-		r.Mount("/api/v1/users", routes.User(router, userUsecase))
-		r.Mount("/api/v1/posts", routes.Post(router, postUsecase))
+		// r.Mount("/api/v1/users", routes.User(router, userUsecase))
+		// r.Mount("/api/v1/posts", routes.Post(r, postUsecase))
+
+		r.Route("/api", func(rt chi.Router) {
+			rt.Mount("/v1/users", routes.User(rt, userUsecase))
+			rt.Mount("/v1/posts", routes.Post(r, postUsecase))
+		})
 
 		// r.Get("/dummy", func(w http.ResponseWriter, r *http.Request) {
 		// 	_, claims, _ := jwtauth.FromContext(r.Context())
