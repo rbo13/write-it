@@ -75,7 +75,6 @@ func (p *postUsecase) Get(w http.ResponseWriter, r *http.Request) {
 
 	config := response.Configure("Posts successfully retrieved", http.StatusOK, posts)
 	response.JSONOK(w, r, config)
-	return
 }
 
 func (p *postUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
@@ -97,35 +96,22 @@ func (p *postUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	config := response.Configure("Post successfully retrieved", http.StatusOK, post)
 	response.JSONOK(w, r, config)
-	return
 }
 
 func (p *postUsecase) Update(w http.ResponseWriter, r *http.Request) {
 	var post app.Post
 	postID, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 
-	if err != nil {
-		config := response.Configure(err.Error(), http.StatusNotFound, nil)
-		response.JSONError(w, r, config)
-		return
-	}
+	check(err, w, r)
 
 	_, claims, err := jwtauth.FromContext(r.Context())
 
-	if err != nil {
-		config := response.Configure(err.Error(), http.StatusForbidden, nil)
-		response.JSONError(w, r, config)
-		return
-	}
+	check(err, w, r)
 
 	// find a user by the given id
 	postFetchRes, err := p.postService.Post(postID)
 
-	if err != nil {
-		config := response.Configure(err.Error(), http.StatusNotFound, nil)
-		response.JSONError(w, r, config)
-		return
-	}
+	check(err, w, r)
 
 	post.ID = postFetchRes.ID
 	post.CreatorID = int64(claims["user_id"].(float64))
@@ -133,19 +119,11 @@ func (p *postUsecase) Update(w http.ResponseWriter, r *http.Request) {
 
 	err = json.NewDecoder(r.Body).Decode(&post)
 
-	if err != nil {
-		config := response.Configure(err.Error(), http.StatusBadRequest, nil)
-		response.JSONError(w, r, config)
-		return
-	}
+	check(err, w, r)
 
 	err = p.postService.UpdatePost(&post)
 
-	if err != nil {
-		config := response.Configure(err.Error(), http.StatusNotFound, nil)
-		response.JSONError(w, r, config)
-		return
-	}
+	check(err, w, r)
 
 	config := response.Configure("Post Successfully Updated", http.StatusOK, post)
 	response.JSONOK(w, r, config)
@@ -166,10 +144,17 @@ func (p *postUsecase) Delete(w http.ResponseWriter, r *http.Request) {
 		config := response.Configure(err.Error(), http.StatusBadRequest, nil)
 		response.JSONError(w, r, config)
 		return
-
 	}
 
 	config := response.Configure("Post Successfully Deleted", http.StatusOK, nil)
 	response.JSONOK(w, r, config)
+}
+
+func check(err error, w http.ResponseWriter, r *http.Request) {
+	if err != nil {
+		config := response.Configure(err.Error(), http.StatusBadRequest, nil)
+		response.JSONError(w, r, config)
+		return
+	}
 	return
 }
