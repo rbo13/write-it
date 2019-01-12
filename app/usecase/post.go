@@ -8,7 +8,6 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/jwtauth"
 
-	"github.com/go-chi/render"
 	"github.com/rbo13/write-it/app"
 	"github.com/rbo13/write-it/app/response"
 )
@@ -47,7 +46,6 @@ func (p *postUsecase) Create(w http.ResponseWriter, r *http.Request) {
 	err = json.NewDecoder(r.Body).Decode(&post)
 
 	if err != nil {
-
 		config := response.Configure(err.Error(), http.StatusBadRequest, nil)
 		response.JSONError(w, r, config)
 		return
@@ -70,7 +68,6 @@ func (p *postUsecase) Get(w http.ResponseWriter, r *http.Request) {
 	posts, err := p.postService.Posts()
 
 	if err != nil {
-
 		config := response.Configure(err.Error(), http.StatusInternalServerError, nil)
 		response.JSONError(w, r, config)
 		return
@@ -85,16 +82,22 @@ func (p *postUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 	postID, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 
 	if err != nil {
-		render.JSON(w, r, err.Error())
+		config := response.Configure(err.Error(), http.StatusBadRequest, nil)
+		response.JSONError(w, r, config)
+		return
 	}
 
 	post, err := p.postService.Post(postID)
 
 	if err != nil {
-		render.JSON(w, r, err.Error())
+		config := response.Configure(err.Error(), http.StatusNotFound, nil)
+		response.JSONError(w, r, config)
+		return
 	}
 
-	render.JSON(w, r, post)
+	config := response.Configure("Post successfully retrieved", http.StatusOK, post)
+	response.JSONOK(w, r, config)
+	return
 }
 
 func (p *postUsecase) Update(w http.ResponseWriter, r *http.Request) {
@@ -102,19 +105,16 @@ func (p *postUsecase) Update(w http.ResponseWriter, r *http.Request) {
 	postID, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 
 	if err != nil {
-		render.JSON(w, r, err)
+		config := response.Configure(err.Error(), http.StatusNotFound, nil)
+		response.JSONError(w, r, config)
+		return
 	}
 
 	_, claims, err := jwtauth.FromContext(r.Context())
 
 	if err != nil {
-		postResp := postResponse{
-			StatusCode: http.StatusForbidden,
-			Message:    err.Error(),
-			Success:    false,
-			Data:       nil,
-		}
-		render.JSON(w, r, &postResp)
+		config := response.Configure(err.Error(), http.StatusForbidden, nil)
+		response.JSONError(w, r, config)
 		return
 	}
 
@@ -124,30 +124,42 @@ func (p *postUsecase) Update(w http.ResponseWriter, r *http.Request) {
 	err = json.NewDecoder(r.Body).Decode(&post)
 
 	if err != nil {
-		render.JSON(w, r, err)
+		config := response.Configure(err.Error(), http.StatusBadRequest, nil)
+		response.JSONError(w, r, config)
+		return
 	}
 
 	err = p.postService.UpdatePost(&post)
 
 	if err != nil {
-		render.JSON(w, r, err)
+		config := response.Configure(err.Error(), http.StatusNotFound, nil)
+		response.JSONError(w, r, config)
+		return
 	}
 
-	render.JSON(w, r, &post)
+	config := response.Configure("Post Successfully Updated", http.StatusOK, post)
+	response.JSONOK(w, r, config)
 }
 
 func (p *postUsecase) Delete(w http.ResponseWriter, r *http.Request) {
 	postID, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 
 	if err != nil {
-		render.JSON(w, r, err)
+		config := response.Configure(err.Error(), http.StatusBadRequest, nil)
+		response.JSONError(w, r, config)
+		return
 	}
 
 	err = p.postService.DeletePost(postID)
 
 	if err != nil {
-		render.JSON(w, r, err)
+		config := response.Configure(err.Error(), http.StatusBadRequest, nil)
+		response.JSONError(w, r, config)
+		return
+
 	}
 
-	render.JSON(w, r, "Post Successfully Deleted")
+	config := response.Configure("Post Successfully Deleted", http.StatusOK, nil)
+	response.JSONOK(w, r, config)
+	return
 }
