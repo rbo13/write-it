@@ -118,8 +118,18 @@ func (p *postUsecase) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post.ID = postID
+	// find a user by the given id
+	postFetchRes, err := p.postService.Post(postID)
+
+	if err != nil {
+		config := response.Configure(err.Error(), http.StatusNotFound, nil)
+		response.JSONError(w, r, config)
+		return
+	}
+
+	post.ID = postFetchRes.ID
 	post.CreatorID = int64(claims["user_id"].(float64))
+	post.CreatedAt = postFetchRes.CreatedAt
 
 	err = json.NewDecoder(r.Body).Decode(&post)
 
