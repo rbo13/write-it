@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-chi/render"
 	"github.com/rbo13/write-it/app"
+	"github.com/rbo13/write-it/app/response"
 )
 
 type postUsecase struct {
@@ -36,13 +37,8 @@ func (p *postUsecase) Create(w http.ResponseWriter, r *http.Request) {
 	_, claims, err := jwtauth.FromContext(r.Context())
 
 	if err != nil {
-		postResp := postResponse{
-			StatusCode: http.StatusForbidden,
-			Message:    err.Error(),
-			Success:    false,
-			Data:       nil,
-		}
-		render.JSON(w, r, &postResp)
+		config := response.Configure(err.Error(), http.StatusForbidden, nil)
+		response.JSONError(w, r, config)
 		return
 	}
 
@@ -51,45 +47,38 @@ func (p *postUsecase) Create(w http.ResponseWriter, r *http.Request) {
 	err = json.NewDecoder(r.Body).Decode(&post)
 
 	if err != nil {
-		postResp := postResponse{
-			StatusCode: http.StatusUnprocessableEntity,
-			Message:    err.Error(),
-			Success:    false,
-			Data:       nil,
-		}
-		render.JSON(w, r, &postResp)
+
+		config := response.Configure(err.Error(), http.StatusBadRequest, nil)
+		response.JSONError(w, r, config)
 		return
 	}
 
 	err = p.postService.CreatePost(&post)
 
 	if err != nil {
-		postResp := postResponse{
-			StatusCode: http.StatusInternalServerError,
-			Message:    err.Error(),
-			Success:    false,
-			Data:       nil,
-		}
-		render.JSON(w, r, &postResp)
+		config := response.Configure(err.Error(), http.StatusBadRequest, nil)
+		response.JSONError(w, r, config)
 		return
 	}
-	postResp := postResponse{
-		StatusCode: http.StatusOK,
-		Message:    "Post has been created",
-		Success:    true,
-		Data:       post,
-	}
 
-	render.JSON(w, r, &postResp)
+	config := response.Configure("Post created successfully", http.StatusOK, post)
+	response.JSONOK(w, r, config)
+	return
 }
 
 func (p *postUsecase) Get(w http.ResponseWriter, r *http.Request) {
 	posts, err := p.postService.Posts()
 
 	if err != nil {
-		render.JSON(w, r, err.Error())
+
+		config := response.Configure(err.Error(), http.StatusInternalServerError, nil)
+		response.JSONError(w, r, config)
+		return
 	}
-	render.JSON(w, r, posts)
+
+	config := response.Configure("Posts successfully retrieved", http.StatusOK, posts)
+	response.JSONOK(w, r, config)
+	return
 }
 
 func (p *postUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
