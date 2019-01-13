@@ -133,13 +133,8 @@ func (u *userUsecase) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	getResponse := UserResponse{
-		StatusCode: http.StatusOK,
-		Message:    "Users successfully retrieved",
-		Success:    true,
-		Data:       users,
-	}
-	render.JSON(w, r, &getResponse)
+	config := response.Configure("Users successfully retrieved", http.StatusOK, users)
+	response.JSONOK(w, r, config)
 }
 
 func (u *userUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
