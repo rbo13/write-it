@@ -140,6 +140,7 @@ func (u *userUsecase) Get(w http.ResponseWriter, r *http.Request) {
 		Data:       users,
 	}
 	render.JSON(w, r, &getResponse)
+
 }
 
 func (u *userUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
