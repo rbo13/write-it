@@ -115,7 +115,7 @@ func (u *userUsecase) Get(w http.ResponseWriter, r *http.Request) {
 	users, err := u.userService.Users()
 
 	if err != nil {
-		config := response.Configure(err.Error(), http.StatusNotFound, nil)
+		config := response.Configure(err.Error(), http.StatusNotFound, users)
 		response.JSONError(w, r, config)
 		return
 	}
