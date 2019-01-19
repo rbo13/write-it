@@ -43,14 +43,8 @@ func (u *userUsecase) Create(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&user)
 
 	if err != nil {
-		createResp := UserResponse{
-			StatusCode: http.StatusUnprocessableEntity,
-			Message:    err.Error(),
-			Success:    false,
-			Data:       nil,
-		}
-
-		render.JSON(w, r, &createResp)
+		config := response.Configure(err.Error(), http.StatusUnprocessableEntity, nil)
+		response.JSONError(w, r, config)
 		return
 	}
 
