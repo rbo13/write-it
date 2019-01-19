@@ -71,7 +71,8 @@ func (u *userUsecase) Login(w http.ResponseWriter, r *http.Request) {
 			AuthToken:    "",
 		}
 
-		render.JSON(w, r, &loginResp)
+		config := response.Configure(err.Error(), http.StatusUnprocessableEntity, &loginResp)
+		response.JSONError(w, r, config)
 		return
 	}
 
@@ -83,7 +84,8 @@ func (u *userUsecase) Login(w http.ResponseWriter, r *http.Request) {
 			AuthToken:    "",
 		}
 
-		render.JSON(w, r, &loginResp)
+		config := response.Configure(err.Error(), http.StatusUnprocessableEntity, &loginResp)
+		response.JSONError(w, r, config)
 		return
 	}
 
@@ -95,16 +97,18 @@ func (u *userUsecase) Login(w http.ResponseWriter, r *http.Request) {
 			AuthToken:    "",
 		}
 
-		render.JSON(w, r, &loginResp)
+		config := response.Configure(err.Error(), http.StatusUnprocessableEntity, &loginResp)
+		response.JSONError(w, r, config)
 		return
 	}
 
-	loginResp := loginResponse{
-		UserResponse: okResponse(http.StatusOK, userResp, "Logged in successfully"),
-		AuthToken:    authToken,
+	loginResp := map[string]interface{}{
+		"user":       userResp,
+		"auth_token": authToken,
 	}
 
-	render.JSON(w, r, &loginResp)
+	config := response.Configure("Logged in sucessfully", http.StatusOK, loginResp)
+	response.JSONOK(w, r, config)
 }
 
 func (u *userUsecase) Get(w http.ResponseWriter, r *http.Request) {
