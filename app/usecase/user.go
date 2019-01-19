@@ -102,12 +102,12 @@ func (u *userUsecase) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	loginResp := loginResponse{
-		UserResponse: okResponse(http.StatusOK, userResp, "Logged in successfully"),
-		AuthToken:    authToken,
+	loginResp := map[string]interface{}{
+		"user":       userResp,
+		"auth_token": authToken,
 	}
 
-	config := response.Configure("OK", http.StatusOK, loginResp)
+	config := response.Configure("Logged in sucessfully", http.StatusOK, loginResp)
 	response.JSONOK(w, r, config)
 }
 
