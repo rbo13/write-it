@@ -136,13 +136,8 @@ func (u *userUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 	user, err := u.userService.User(userID)
 
 	if err != nil {
-		getByIDResponse := UserResponse{
-			StatusCode: http.StatusNotFound,
-			Message:    err.Error(),
-			Success:    false,
-			Data:       nil,
-		}
-		render.JSON(w, r, &getByIDResponse)
+		config := response.Configure(err.Error(), http.StatusNotFound, nil)
+		response.JSONError(w, r, config)
 		return
 	}
 
