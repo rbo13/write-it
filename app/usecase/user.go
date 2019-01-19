@@ -127,7 +127,7 @@ func (u *userUsecase) Get(w http.ResponseWriter, r *http.Request) {
 func (u *userUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 	userID, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 
-	if err != nil {
+	if err != nil || userID <= 0 {
 		config := response.Configure(err.Error(), http.StatusUnprocessableEntity, nil)
 		response.JSONError(w, r, config)
 		return
