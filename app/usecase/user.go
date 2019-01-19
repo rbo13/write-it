@@ -51,25 +51,14 @@ func (u *userUsecase) Create(w http.ResponseWriter, r *http.Request) {
 	err = u.userService.CreateUser(&user)
 
 	if err != nil {
-		createResp := UserResponse{
-			StatusCode: http.StatusInternalServerError,
-			Message:    err.Error(),
-			Success:    false,
-			Data:       nil,
-		}
-
-		render.JSON(w, r, &createResp)
+		config := response.Configure(err.Error(), http.StatusBadRequest, nil)
+		response.JSONError(w, r, config)
 		return
 	}
 
-	createResp := UserResponse{
-		StatusCode: http.StatusOK,
-		Message:    "User successfully registered",
-		Success:    true,
-		Data:       user,
-	}
-
-	render.JSON(w, r, &createResp)
+	config := response.Configure("User successfully registered", http.StatusOK, user)
+	response.JSONOK(w, r, config)
+	return
 }
 
 func (u *userUsecase) Login(w http.ResponseWriter, r *http.Request) {
