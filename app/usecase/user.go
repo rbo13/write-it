@@ -141,14 +141,6 @@ func (u *userUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// getByIDResponse := UserResponse{
-	// 	StatusCode: http.StatusOK,
-	// 	Message:    "User successfully retrieved",
-	// 	Success:    true,
-	// 	Data:       user,
-	// }
-	// render.JSON(w, r, &getByIDResponse)
-
 	config := response.Configure("User successfully retrieved", http.StatusOK, user)
 	response.JSONOK(w, r, config)
 }
