@@ -114,7 +114,7 @@ func (u *userUsecase) Login(w http.ResponseWriter, r *http.Request) {
 func (u *userUsecase) Get(w http.ResponseWriter, r *http.Request) {
 	users, err := u.userService.Users()
 
-	if err != nil {
+	if err != nil || users == nil {
 		config := response.Configure(err.Error(), http.StatusNotFound, users)
 		response.JSONError(w, r, config)
 		return
