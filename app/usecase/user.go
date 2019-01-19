@@ -114,20 +114,14 @@ func (u *userUsecase) Login(w http.ResponseWriter, r *http.Request) {
 func (u *userUsecase) Get(w http.ResponseWriter, r *http.Request) {
 	users, err := u.userService.Users()
 
-	if err != nil {
-		config := response.Configure(err.Error(), http.StatusNotFound, nil)
+	if err != nil || users == nil {
+		config := response.Configure(err.Error(), http.StatusNotFound, users)
 		response.JSONError(w, r, config)
 		return
 	}
 
-	getResponse := UserResponse{
-		StatusCode: http.StatusOK,
-		Message:    "Users successfully retrieved",
-		Success:    true,
-		Data:       users,
-	}
-	render.JSON(w, r, &getResponse)
-
+	config := response.Configure("Users successfully retrieved", http.StatusOK, users)
+	response.JSONOK(w, r, config)
 }
 
 func (u *userUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
