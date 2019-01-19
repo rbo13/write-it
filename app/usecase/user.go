@@ -127,7 +127,7 @@ func (u *userUsecase) Get(w http.ResponseWriter, r *http.Request) {
 func (u *userUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 	userID, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 
-	if err != nil {
+	if err != nil || userID <= 0 {
 		config := response.Configure(err.Error(), http.StatusUnprocessableEntity, nil)
 		response.JSONError(w, r, config)
 		return
@@ -136,23 +136,13 @@ func (u *userUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 	user, err := u.userService.User(userID)
 
 	if err != nil {
-		getByIDResponse := UserResponse{
-			StatusCode: http.StatusNotFound,
-			Message:    err.Error(),
-			Success:    false,
-			Data:       nil,
-		}
-		render.JSON(w, r, &getByIDResponse)
+		config := response.Configure(err.Error(), http.StatusNotFound, nil)
+		response.JSONError(w, r, config)
 		return
 	}
 
-	getByIDResponse := UserResponse{
-		StatusCode: http.StatusOK,
-		Message:    "User successfully retrieved",
-		Success:    true,
-		Data:       user,
-	}
-	render.JSON(w, r, &getByIDResponse)
+	config := response.Configure("User successfully retrieved", http.StatusOK, user)
+	response.JSONOK(w, r, config)
 }
 
 func (u *userUsecase) Update(w http.ResponseWriter, r *http.Request) {
@@ -160,14 +150,8 @@ func (u *userUsecase) Update(w http.ResponseWriter, r *http.Request) {
 	userID, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 
 	if err != nil {
-
-		updateResponse := UserResponse{
-			StatusCode: http.StatusUnprocessableEntity,
-			Message:    err.Error(),
-			Success:    false,
-			Data:       nil,
-		}
-		render.JSON(w, r, &updateResponse)
+		config := response.Configure(err.Error(), http.StatusUnprocessableEntity, nil)
+		response.JSONError(w, r, config)
 		return
 	}
 
@@ -177,14 +161,8 @@ func (u *userUsecase) Update(w http.ResponseWriter, r *http.Request) {
 	err = json.NewDecoder(r.Body).Decode(&user)
 
 	if err != nil {
-
-		updateResponse := UserResponse{
-			StatusCode: http.StatusUnprocessableEntity,
-			Message:    err.Error(),
-			Success:    false,
-			Data:       nil,
-		}
-		render.JSON(w, r, &updateResponse)
+		config := response.Configure(err.Error(), http.StatusUnprocessableEntity, nil)
+		response.JSONError(w, r, config)
 		return
 	}
 
