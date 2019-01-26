@@ -169,13 +169,8 @@ func (u *userUsecase) Update(w http.ResponseWriter, r *http.Request) {
 	err = u.userService.UpdateUser(&user)
 
 	if err != nil {
-		updateResponse := UserResponse{
-			StatusCode: http.StatusInternalServerError,
-			Message:    err.Error(),
-			Success:    false,
-			Data:       nil,
-		}
-		render.JSON(w, r, &updateResponse)
+		config := response.Configure(err.Error(), http.StatusUnprocessableEntity, nil)
+		response.JSONError(w, r, config)
 		return
 	}
 
