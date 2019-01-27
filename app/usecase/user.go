@@ -174,13 +174,8 @@ func (u *userUsecase) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updateResponse := UserResponse{
-		StatusCode: http.StatusOK,
-		Message:    "User successfully updated",
-		Success:    true,
-		Data:       user,
-	}
-	render.JSON(w, r, &updateResponse)
+	config := response.Configure("User successfully updated", http.StatusOK, user)
+	response.JSONOK(w, r, config)
 }
 
 func (u *userUsecase) Delete(w http.ResponseWriter, r *http.Request) {
