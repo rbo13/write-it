@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi"
+	"github.com/go-chi/render"
 
 	"github.com/rbo13/write-it/app"
 	"github.com/rbo13/write-it/app/response"
@@ -181,8 +182,7 @@ func (u *userUsecase) Delete(w http.ResponseWriter, r *http.Request) {
 	userID, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 
 	if err != nil {
-		config := response.Configure(err.Error(), http.StatusUnprocessableEntity, userID)
-		response.JSONError(w, r, config)
+		render.JSON(w, r, userID)
 		return
 	}
 
