@@ -182,13 +182,8 @@ func (u *userUsecase) Delete(w http.ResponseWriter, r *http.Request) {
 	userID, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 
 	if err != nil {
-		deleteResponse := UserResponse{
-			StatusCode: http.StatusUnprocessableEntity,
-			Message:    err.Error(),
-			Success:    false,
-			Data:       nil,
-		}
-		render.JSON(w, r, &deleteResponse)
+		config := response.Configure(err.Error(), http.StatusUnprocessableEntity, nil)
+		response.JSONError(w, r, config)
 		return
 	}
 
