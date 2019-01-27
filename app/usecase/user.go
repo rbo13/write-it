@@ -190,13 +190,8 @@ func (u *userUsecase) Delete(w http.ResponseWriter, r *http.Request) {
 	err = u.userService.DeleteUser(userID)
 
 	if err != nil {
-		deleteResponse := UserResponse{
-			StatusCode: http.StatusNotFound,
-			Message:    err.Error(),
-			Success:    false,
-			Data:       nil,
-		}
-		render.JSON(w, r, &deleteResponse)
+		config := response.Configure(err.Error(), http.StatusNotFound, nil)
+		response.JSONError(w, r, config)
 		return
 	}
 
