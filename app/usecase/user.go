@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-chi/chi"
 
-	"github.com/go-chi/render"
 	"github.com/rbo13/write-it/app"
 	"github.com/rbo13/write-it/app/response"
 )
@@ -195,13 +194,8 @@ func (u *userUsecase) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	deleteResponse := UserResponse{
-		StatusCode: http.StatusNoContent,
-		Message:    "User successfully deleted",
-		Success:    true,
-		Data:       nil,
-	}
-	render.JSON(w, r, &deleteResponse)
+	config := response.Configure("User successfully deleted", http.StatusNoContent, nil)
+	response.JSONOK(w, r, config)
 }
 
 func errorResponse(statusCode uint, message string) (errResponse UserResponse) {
