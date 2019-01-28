@@ -9,6 +9,7 @@ import (
 func User(r chi.Router, handler app.UserHandler) chi.Router {
 	r.Get("/", handler.Get)
 	r.Get("/{id}", handler.GetByID)
+	r.Put("/{id}", handler.Update)
 
 	// r.Route("/{id}", func(r chi.Router) {
 	// 	r.Get("/", handler.GetByID)
