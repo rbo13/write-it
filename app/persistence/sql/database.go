@@ -39,7 +39,6 @@ func (db *DB) Use(dbName string) {
 }
 
 // Migrate migrates a table.
-// Returns an error.
 func (db *DB) Migrate() {
 	for _, schema := range Schemas() {
 		db.Sqlx.MustExec(schema)

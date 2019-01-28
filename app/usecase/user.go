@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
@@ -155,8 +154,20 @@ func (u *userUsecase) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user.ID = userID
-	user.UpdatedAt = time.Now().Unix()
+	// Find a user by the given id
+	userResp, err := u.userService.User(userID)
+
+	if err != nil {
+		config := response.Configure(err.Error(), http.StatusNotFound, nil)
+		response.JSONError(w, r, config)
+		return
+	}
+
+	// fill the necessary fields
+	// that doesnt need to be updated
+	user.ID = userResp.ID
+	user.Password = userResp.Password
+	user.CreatedAt = userResp.CreatedAt
 
 	err = json.NewDecoder(r.Body).Decode(&user)
 
