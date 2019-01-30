@@ -219,14 +219,3 @@ func errorResponse(statusCode uint, message string) (errResponse UserResponse) {
 
 	return errResponse
 }
-
-func okResponse(statusCode uint, data interface{}, message string) (okResponse UserResponse) {
-	okResponse = UserResponse{
-		StatusCode: statusCode,
-		Message:    message,
-		Success:    true,
-		Data:       data,
-	}
-
-	return okResponse
-}
