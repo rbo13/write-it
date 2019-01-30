@@ -32,8 +32,6 @@ func Configure(message string, statusCode uint, data interface{}) Config {
 
 // JSONOK sends an http.StatusOK as the response together with the custom response `JSONResponse`.
 func JSONOK(w http.ResponseWriter, r *http.Request, con Config) {
-
-	// lets set the default value to ok
 	if con.StatusCode <= 0 {
 		con.StatusCode = http.StatusOK
 	}
