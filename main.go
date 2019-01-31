@@ -43,9 +43,6 @@ func main() {
 	db.Use(dbName)
 	db.Migrate()
 
-	// inmemory := inmemory.NewInMemoryPostService()
-	// postUsecase := usecase.NewPost(inmemory)
-
 	jwtService := jwtservice.New()
 	userSQLSrvc := sql.NewUserSQLService(db.Sqlx, jwtService)
 	postSQLSrvc := sql.NewPostSQLService(db.Sqlx)
