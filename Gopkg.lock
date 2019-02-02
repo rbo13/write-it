@@ -2,6 +2,14 @@
 
 
 [[projects]]
+  branch = "master"
+  digest = "1:f98385a9b77f6cacae716a59c04e6ac374d101466d4369c4e8cc706a39c4bb2e"
+  name = "github.com/bradfitz/gomemcache"
+  packages = ["memcache"]
+  pruneopts = "UT"
+  revision = "bc664df9673713a0ccf26e3b55a673ec7301088b"
+
+[[projects]]
   digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
   name = "github.com/dgrijalva/jwt-go"
   packages = ["."]
@@ -19,6 +27,14 @@
   pruneopts = "UT"
   revision = "b5294d10673813fac8558e7f47242bc9e61b4c25"
   version = "v3.3.3"
+
+[[projects]]
+  digest = "1:866bac66ae32f6d18b0ccd9b0322de28846e5c1ae9bc889f3e590438a3486ae6"
+  name = "github.com/go-chi/jwtauth"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "47840abb19b36dcf4d3ab4123b605b28ea511bc8"
+  version = "v4.0.2"
 
 [[projects]]
   digest = "1:54d7b4b9ab2bb2bae35b55eea900bc8fe15cba05a95fc78bf7fd7b82a9a07afa"
@@ -70,9 +86,11 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/bradfitz/gomemcache/memcache",
     "github.com/dgrijalva/jwt-go",
     "github.com/go-chi/chi",
     "github.com/go-chi/chi/middleware",
+    "github.com/go-chi/jwtauth",
     "github.com/go-chi/render",
     "github.com/go-sql-driver/mysql",
     "github.com/jmoiron/sqlx",
