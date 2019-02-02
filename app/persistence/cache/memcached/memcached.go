@@ -20,9 +20,9 @@ type Memcached struct {
 	client          *memcache.Client
 }
 
-// NewMemcached constructor for our concrete
+// New constructor for our concrete
 // implementation of memcacher
-func NewMemcached(host, port, server string) *Memcached {
+func New(host, port, server string) *Memcached {
 	return &Memcached{
 		memcachedHost:   host,
 		memcachedPort:   port,
