@@ -136,22 +136,13 @@ func (u *userUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	var user *app.User
 
-	// check in cache, if no record query to database then save to cache.
 	cacheKey := chi.URLParam(r, "id")
-
 	mem := memcached.New("localhost", "11211", "localhost:11211")
-	cacheData, err := cache.Get(mem, cacheKey)
 
-	if cacheData != "" {
-		err = json.Unmarshal([]byte(cacheData), &user)
+	user, err = getUserFromCache(cacheKey, mem)
 
-		if err != nil {
-			config := response.Configure(err.Error(), http.StatusUnprocessableEntity, nil)
-			response.JSONError(w, r, config)
-			return
-		}
-
-		config := response.Configure("User successfully retrieved from cache", http.StatusOK, &user)
+	if user != nil {
+		config := response.Configure("User successfully retrieved from cache", http.StatusOK, user)
 		response.JSONOK(w, r, config)
 		return
 	}
@@ -170,15 +161,14 @@ func (u *userUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			config := response.Configure(err.Error(), http.StatusUnprocessableEntity, nil)
 			response.JSONError(w, r, config)
-			return
-		}
+		} else {
+			_, err = cache.Set(mem, cacheKey, string(val))
 
-		_, err = cache.Set(mem, cacheKey, string(val))
-
-		if err != nil {
-			config := response.Configure(err.Error(), http.StatusUnprocessableEntity, nil)
-			response.JSONError(w, r, config)
-			return
+			if err != nil {
+				config := response.Configure(err.Error(), http.StatusUnprocessableEntity, nil)
+				response.JSONError(w, r, config)
+				return
+			}
 		}
 	}
 
@@ -260,4 +250,21 @@ func errorResponse(statusCode uint, message string) (errResponse UserResponse) {
 	}
 
 	return errResponse
+}
+
+func getUserFromCache(cacheKey string, mem *memcached.Memcached) (*app.User, error) {
+
+	cacheData, err := cache.Get(mem, cacheKey)
+	var user *app.User
+
+	if cacheData != "" {
+		err = json.Unmarshal([]byte(cacheData), &user)
+
+		if err != nil {
+			return nil, err
+		}
+		return user, nil
+	}
+
+	return user, nil
 }
