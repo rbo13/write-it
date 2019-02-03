@@ -9,6 +9,8 @@ import (
 	"github.com/go-chi/render"
 
 	"github.com/rbo13/write-it/app"
+	"github.com/rbo13/write-it/app/persistence/cache"
+	"github.com/rbo13/write-it/app/persistence/cache/memcached"
 	"github.com/rbo13/write-it/app/response"
 )
 
@@ -132,12 +134,52 @@ func (u *userUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := u.userService.User(userID)
+	var user *app.User
+
+	// check in cache, if no record query to database then save to cache.
+	cacheKey := chi.URLParam(r, "id")
+
+	mem := memcached.New("localhost", "11211", "localhost:11211")
+	cacheData, err := cache.Get(mem, cacheKey)
+
+	if cacheData != "" {
+		err = json.Unmarshal([]byte(cacheData), &user)
+
+		if err != nil {
+			config := response.Configure(err.Error(), http.StatusUnprocessableEntity, nil)
+			response.JSONError(w, r, config)
+			return
+		}
+
+		config := response.Configure("User successfully retrieved from cache", http.StatusOK, &user)
+		response.JSONOK(w, r, config)
+		return
+	}
+
+	user, err = u.userService.User(userID)
 
 	if err != nil {
 		config := response.Configure(err.Error(), http.StatusNotFound, nil)
 		response.JSONError(w, r, config)
 		return
+	}
+
+	if user != nil {
+		val, err := json.Marshal(user)
+
+		if err != nil {
+			config := response.Configure(err.Error(), http.StatusUnprocessableEntity, nil)
+			response.JSONError(w, r, config)
+			return
+		}
+
+		_, err = cache.Set(mem, cacheKey, string(val))
+
+		if err != nil {
+			config := response.Configure(err.Error(), http.StatusUnprocessableEntity, nil)
+			response.JSONError(w, r, config)
+			return
+		}
 	}
 
 	config := response.Configure("User successfully retrieved", http.StatusOK, user)
