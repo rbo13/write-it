@@ -36,21 +36,21 @@ func New(host, port, server string) *Memcached {
 // after setting a value using
 // the specified `key`, returns
 // error otherwise.
-func (m *Memcached) Set(suffix string, val interface{}) (bool, error) {
+func (m *Memcached) Set(suffix string, val string) (bool, error) {
 	var e error
 	var key string
 	if m.isCompressed {
 		key = prefix + ".c." + suffix
 		e = m.client.Set(&memcache.Item{
 			Key:        key,
-			Value:      gzcompress(val.(string)),
+			Value:      gzcompress(val),
 			Expiration: 0,
 		})
 	} else {
 		key = prefix + suffix
 		e = m.client.Set(&memcache.Item{
 			Key:        key,
-			Value:      []byte(val.(string)),
+			Value:      []byte(val),
 			Expiration: 0,
 		})
 	}
@@ -63,7 +63,7 @@ func (m *Memcached) Set(suffix string, val interface{}) (bool, error) {
 
 // Get returns the `data` saved in cache
 // using the specified `key`.
-func (m *Memcached) Get(suffix string) (interface{}, error) {
+func (m *Memcached) Get(suffix string) (string, error) {
 	var key string
 	if m.isCompressed {
 		key = prefix + ".c." + suffix
