@@ -31,6 +31,10 @@ type loginResponse struct {
 	AuthToken    string       `json:"auth_token"`
 }
 
+func bootMemcached() *memcached.Memcached {
+	return memcached.New("localhost", "11211", "localhost:11211")
+}
+
 // NewUser ...
 func NewUser(userService app.UserService) app.UserHandler {
 	return &userUsecase{
@@ -137,12 +141,15 @@ func (u *userUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 	var user *app.User
 
 	cacheKey := chi.URLParam(r, "id")
-	mem := memcached.New("localhost", "11211", "localhost:11211")
+	mem := bootMemcached()
 
 	user, err = getUserFromCache(cacheKey, mem)
 
 	if user != nil {
-		config := response.Configure("User successfully retrieved from cache", http.StatusOK, user)
+		config := response.Configure("User successfully retrieved", http.StatusOK, map[string]interface{}{
+			"user":   user,
+			"cached": true,
+		})
 		response.JSONOK(w, r, config)
 		return
 	}
@@ -172,7 +179,10 @@ func (u *userUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	config := response.Configure("User successfully retrieved", http.StatusOK, user)
+	config := response.Configure("User successfully retrieved", http.StatusOK, map[string]interface{}{
+		"user":   user,
+		"cached": false,
+	})
 	response.JSONOK(w, r, config)
 }
 
