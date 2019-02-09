@@ -14,6 +14,10 @@ import (
 	"github.com/rbo13/write-it/app/response"
 )
 
+var (
+	cacheKey = ""
+)
+
 type userUsecase struct {
 	userService app.UserService
 }
@@ -117,6 +121,20 @@ func (u *userUsecase) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u *userUsecase) Get(w http.ResponseWriter, r *http.Request) {
+	mem := bootMemcached()
+	cacheKey = "getAllUsers"
+
+	usersCache, err := getUsersFromCache(cacheKey, mem)
+
+	if len(usersCache) > 0 {
+		config := response.Configure("Users successfully retrieved", http.StatusOK, map[string]interface{}{
+			"users":  usersCache,
+			"cached": true,
+		})
+		response.JSONOK(w, r, config)
+		return
+	}
+
 	users, err := u.userService.Users()
 
 	if err != nil || users == nil {
@@ -125,7 +143,27 @@ func (u *userUsecase) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	config := response.Configure("Users successfully retrieved", http.StatusOK, users)
+	if len(users) > 0 {
+		val, err := json.Marshal(users)
+
+		if err != nil {
+			config := response.Configure(err.Error(), http.StatusUnprocessableEntity, nil)
+			response.JSONError(w, r, config)
+		} else {
+			_, err = cache.Set(mem, cacheKey, string(val))
+
+			if err != nil {
+				config := response.Configure(err.Error(), http.StatusUnprocessableEntity, nil)
+				response.JSONError(w, r, config)
+				return
+			}
+		}
+	}
+
+	config := response.Configure("Users successfully retrieved", http.StatusOK, map[string]interface{}{
+		"users":  users,
+		"cached": false,
+	})
 	response.JSONOK(w, r, config)
 }
 
@@ -140,7 +178,7 @@ func (u *userUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	var user *app.User
 
-	cacheKey := chi.URLParam(r, "id")
+	cacheKey = chi.URLParam(r, "id")
 	mem := bootMemcached()
 
 	user, err = getUserFromCache(cacheKey, mem)
@@ -277,4 +315,21 @@ func getUserFromCache(cacheKey string, mem *memcached.Memcached) (*app.User, err
 	}
 
 	return user, nil
+}
+
+func getUsersFromCache(cacheKey string, mem *memcached.Memcached) ([]app.User, error) {
+
+	cacheData, err := cache.Get(mem, cacheKey)
+	var users []app.User
+
+	if cacheData != "" {
+		err = json.Unmarshal([]byte(cacheData), &users)
+
+		if err != nil {
+			return nil, err
+		}
+		return users, nil
+	}
+
+	return users, nil
 }
