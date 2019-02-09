@@ -144,19 +144,12 @@ func (u *userUsecase) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(users) > 0 {
-		val, err := json.Marshal(users)
+		err = storeToCache(mem, users, cacheKey)
 
 		if err != nil {
 			config := response.Configure(err.Error(), http.StatusUnprocessableEntity, nil)
 			response.JSONError(w, r, config)
-		} else {
-			_, err = cache.Set(mem, cacheKey, string(val))
-
-			if err != nil {
-				config := response.Configure(err.Error(), http.StatusUnprocessableEntity, nil)
-				response.JSONError(w, r, config)
-				return
-			}
+			return
 		}
 	}
 
