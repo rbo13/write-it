@@ -18,6 +18,10 @@ var (
 	cacheKey = ""
 )
 
+const (
+	errCacheMiss = "memcache: cache miss"
+)
+
 type userUsecase struct {
 	userService app.UserService
 }
@@ -171,21 +175,34 @@ func (u *userUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var user *app.User
-
 	cacheKey = chi.URLParam(r, "id")
 	mem := BootMemcached()
 
-	user, err = getUserFromCache(cacheKey, mem)
-
-	if user != nil {
-		config := response.Configure("User successfully retrieved", http.StatusOK, map[string]interface{}{
-			"user":   user,
-			"cached": true,
-		})
-		response.JSONOK(w, r, config)
+	data, err := cache.Get(mem, cacheKey)
+	if err != nil && err.Error() != errCacheMiss {
+		config := response.Configure(err.Error(), http.StatusBadRequest, nil)
+		response.JSONError(w, r, config)
 		return
 	}
 
+	if data != "" {
+		err = json.Unmarshal([]byte(data), &user)
+		if err != nil {
+			config := response.Configure(err.Error(), http.StatusInternalServerError, nil)
+			response.JSONError(w, r, config)
+			return
+		}
+
+		if user != nil {
+			config := response.Configure("User successfully retrieved", http.StatusOK, map[string]interface{}{
+				"user":   user,
+				"cached": true,
+			})
+			response.JSONOK(w, r, config)
+			return
+		}
+	}
+	//
 	user, err = u.userService.User(userID)
 
 	if err != nil {
@@ -287,22 +304,22 @@ func errorResponse(statusCode uint, message string) (errResponse UserResponse) {
 	return errResponse
 }
 
-func getUserFromCache(cacheKey string, mem *memcached.Memcached) (*app.User, error) {
-
-	cacheData, err := cache.Get(mem, cacheKey)
-	var user *app.User
-
-	if cacheData != "" {
-		err = json.Unmarshal([]byte(cacheData), &user)
-
-		if err != nil {
-			return nil, err
-		}
-		return user, nil
-	}
-
-	return user, nil
-}
+// func getUserFromCache(cacheKey string, mem *memcached.Memcached) (*app.User, error) {
+//
+// 	cacheData, err := cache.Get(mem, cacheKey)
+// 	var user *app.User
+//
+// 	if cacheData != "" {
+// 		err = json.Unmarshal([]byte(cacheData), &user)
+//
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		return user, nil
+// 	}
+//
+// 	return user, nil
+// }
 
 func getUsersFromCache(cacheKey string, mem *memcached.Memcached) ([]app.User, error) {
 
