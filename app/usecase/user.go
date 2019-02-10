@@ -144,7 +144,7 @@ func (u *userUsecase) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(users) > 0 {
-		err = storeToCache(mem, users, cacheKey)
+		err = StoreToCache(mem, users, cacheKey)
 
 		if err != nil {
 			config := response.Configure(err.Error(), http.StatusUnprocessableEntity, nil)
@@ -194,7 +194,7 @@ func (u *userUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if user != nil {
-		err := storeToCache(mem, user, cacheKey)
+		err := StoreToCache(mem, user, cacheKey)
 
 		if err != nil {
 			config := response.Configure(err.Error(), http.StatusUnprocessableEntity, nil)
@@ -320,7 +320,8 @@ func getUsersFromCache(cacheKey string, mem *memcached.Memcached) ([]app.User, e
 	return users, nil
 }
 
-func storeToCache(mem *memcached.Memcached, data interface{}, cacheKey string) error {
+// StoreToCache stores given value to the cache.
+func StoreToCache(mem *memcached.Memcached, data interface{}, cacheKey string) error {
 	val, err := json.Marshal(data)
 
 	if err != nil {
