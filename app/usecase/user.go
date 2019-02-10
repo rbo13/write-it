@@ -35,7 +35,8 @@ type loginResponse struct {
 	AuthToken    string       `json:"auth_token"`
 }
 
-func bootMemcached() *memcached.Memcached {
+// BootMemcached returns the pointer to memcached.Memcached to spin up the caching layer.
+func BootMemcached() *memcached.Memcached {
 	return memcached.New("localhost", "11211", "localhost:11211")
 }
 
@@ -121,7 +122,7 @@ func (u *userUsecase) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u *userUsecase) Get(w http.ResponseWriter, r *http.Request) {
-	mem := bootMemcached()
+	mem := BootMemcached()
 	cacheKey = "getAllUsers"
 
 	usersCache, err := getUsersFromCache(cacheKey, mem)
@@ -172,7 +173,7 @@ func (u *userUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 	var user *app.User
 
 	cacheKey = chi.URLParam(r, "id")
-	mem := bootMemcached()
+	mem := BootMemcached()
 
 	user, err = getUserFromCache(cacheKey, mem)
 
