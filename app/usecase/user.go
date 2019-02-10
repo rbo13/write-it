@@ -293,23 +293,6 @@ func errorResponse(statusCode uint, message string) (errResponse UserResponse) {
 	return errResponse
 }
 
-// func getUserFromCache(cacheKey string, mem *memcached.Memcached) (*app.User, error) {
-//
-// 	cacheData, err := cache.Get(mem, cacheKey)
-// 	var user *app.User
-//
-// 	if cacheData != "" {
-// 		err = json.Unmarshal([]byte(cacheData), &user)
-//
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		return user, nil
-// 	}
-//
-// 	return user, nil
-// }
-
 func getUsersFromCache(cacheKey string, mem *memcached.Memcached) ([]app.User, error) {
 
 	cacheData, err := cache.Get(mem, cacheKey)
