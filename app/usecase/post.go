@@ -94,10 +94,18 @@ func (p *postUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	data, err := cache.Get(mem, cacheKey)
 	if err == nil && data != "" {
-		err = json.Unmarshal([]byte(data), &post)
+		// err = json.Unmarshal([]byte(data), &post)
+		val, err := Unmarshaler(data, post)
+
 		if err != nil {
 			config := response.Configure(err.Error(), http.StatusInternalServerError, nil)
 			response.JSONError(w, r, config)
+		}
+
+		// assert the type since we return an interface{}.
+
+		if val != nil {
+			post = val.(*app.Post)
 		}
 
 		if post != nil && err == nil {
@@ -193,4 +201,14 @@ func check(err error, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	return
+}
+
+// Unmarshaler handles the unmarshaling of data
+func Unmarshaler(data string, val interface{}) (interface{}, error) {
+	err := json.Unmarshal([]byte(data), &val)
+	if err != nil {
+		return nil, err
+	}
+
+	return val, nil
 }
