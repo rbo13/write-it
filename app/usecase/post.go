@@ -66,7 +66,40 @@ func (p *postUsecase) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *postUsecase) Get(w http.ResponseWriter, r *http.Request) {
-	posts, err := p.postService.Posts()
+
+	// get from cache first
+	var posts []*app.Post
+	cacheKey = "getAllPosts"
+	mem := BootMemcached()
+
+	data, err := cache.Get(mem, cacheKey)
+	if err == nil && data != "" {
+		err = json.Unmarshal([]byte(data), &posts)
+		// val, err := Unmarshaler(data, posts)
+
+		if err != nil {
+			config := response.Configure(err.Error(), http.StatusInternalServerError, nil)
+			response.JSONError(w, r, config)
+		}
+
+		// assert the type since we return an interface{}.
+
+		// if val != nil {
+		// 	posts = val.([]*app.Post)
+		// }
+
+		if posts != nil && err == nil {
+			config := response.Configure("Post successfully retrieved", http.StatusOK, map[string]interface{}{
+				"posts":  posts,
+				"cached": true,
+			})
+			response.JSONOK(w, r, config)
+		}
+
+		return
+	}
+
+	posts, err = p.postService.Posts()
 
 	if err != nil {
 		config := response.Configure(err.Error(), http.StatusInternalServerError, nil)
@@ -74,7 +107,19 @@ func (p *postUsecase) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	config := response.Configure("Posts successfully retrieved", http.StatusOK, posts)
+	// save to cache
+	err = StoreToCache(mem, posts, cacheKey)
+	if err != nil {
+		config := response.Configure(err.Error(), http.StatusUnprocessableEntity, nil)
+		response.JSONError(w, r, config)
+		return
+	}
+
+	config := response.Configure("Posts successfully retrieved", http.StatusOK, map[string]interface{}{
+		"posts":  posts,
+		"cached": false,
+	})
+
 	response.JSONOK(w, r, config)
 }
 
