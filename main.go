@@ -1,7 +1,12 @@
 package main
 
 import (
+	"context"
 	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 
@@ -75,7 +80,19 @@ func main() {
 	})
 
 	s := server.New(":1333", router)
-	s.StartTLS("./certificates/localhost+2.pem", "./certificates/localhost+2-key.pem")
+	go func() {
+		s.StartTLS("./certificates/localhost+2.pem", "./certificates/localhost+2-key.pem")
+	}()
+
+	gracefulShutdown(s.HTTPServer)
+
+	// c := make(chan os.Signal, 1)
+	// signal.Notify(c, os.Interrupt)
+	// <-c
+	//
+	// ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	// defer cancel()
+	// s.HTTPServer.Shutdown(ctx)
 }
 
 func check(err error) error {
@@ -85,4 +102,14 @@ func check(err error) error {
 	}
 
 	return nil
+}
+
+func gracefulShutdown(srv *http.Server) {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	<-c
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	srv.Shutdown(ctx)
 }
