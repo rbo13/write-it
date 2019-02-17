@@ -30,5 +30,5 @@ func (Post) TableName() string {
 }
 
 func (p *Post) String() string {
-	return fmt.Sprintf("Post{ID: %d, CreatorID: %d, PostTitle: %s, PostBody: %s}", p.ID, p.CreatorID, p.PostTitle, p.PostBody)
+	return fmt.Sprintf("{id: %d, creator_id: %d, post_title: %s, post_body: %s, created_at: %d, updated_at: %d, deleted_at: %d}", p.ID, p.CreatorID, p.PostTitle, p.PostBody, p.CreatedAt, p.UpdatedAt, p.DeletedAt)
 }
