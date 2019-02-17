@@ -63,7 +63,11 @@ func (u *User) CreateUser(user *app.User) error {
 		user.CreatedAt = time.Now().Unix()
 		user.Password = hashPassword(user.Password)
 
-		res, err := tx.NamedExec("INSERT INTO users (username, email, password, created_at, deleted_at, updated_at) VALUES(:username, :email, :password, :created_at, :deleted_at, :updated_at)", &user)
+		if user.UserType == "" {
+			user.UserType = "reader"
+		}
+
+		res, err := tx.NamedExec("INSERT INTO users (username, email, password, user_type, created_at, deleted_at, updated_at) VALUES(:username, :email, :password, :user_type, :created_at, :deleted_at, :updated_at)", &user)
 
 		if err != nil && res == nil {
 			tx.Rollback()

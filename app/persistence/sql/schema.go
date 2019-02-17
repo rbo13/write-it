@@ -11,6 +11,7 @@ func Schemas() []string {
 			username varchar(16),
 			email varchar(151),
 			password varchar(255),
+			user_type varchar(255),
 			created_at bigint,
 			updated_at bigint,
 			deleted_at bigint,
