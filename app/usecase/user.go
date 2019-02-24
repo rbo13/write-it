@@ -2,10 +2,12 @@ package usecase
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/go-chi/chi"
+	"github.com/go-chi/jwtauth"
 	"github.com/go-chi/render"
 
 	"github.com/rbo13/write-it/app"
@@ -220,12 +222,28 @@ func (u *userUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 func (u *userUsecase) Update(w http.ResponseWriter, r *http.Request) {
 	var user app.User
 	userID, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
-
 	if err != nil {
 		config := response.Configure(err.Error(), http.StatusUnprocessableEntity, nil)
 		response.JSONError(w, r, config)
 		return
 	}
+
+	_, claims, err := jwtauth.FromContext(r.Context())
+	if err != nil {
+		config := response.Configure(err.Error(), http.StatusForbidden, nil)
+		response.JSONError(w, r, config)
+		return
+	}
+
+	authorID := int64(claims["user_id"].(float64))
+	if userID != authorID {
+		config := response.Configure("Cannot update other User", http.StatusForbidden, nil)
+		response.JSONError(w, r, config)
+		return
+	}
+
+	log.Println(authorID)
+	log.Println(userID)
 
 	// Find a user by the given id
 	userResp, err := u.userService.User(userID)
