@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi"
+	"github.com/go-chi/jwtauth"
 	"github.com/go-chi/render"
 
 	"github.com/rbo13/write-it/app"
@@ -220,9 +221,14 @@ func (u *userUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 func (u *userUsecase) Update(w http.ResponseWriter, r *http.Request) {
 	var user app.User
 	userID, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	check(err, w, r)
 
-	if err != nil {
-		config := response.Configure(err.Error(), http.StatusUnprocessableEntity, nil)
+	_, claims, err := jwtauth.FromContext(r.Context())
+	check(err, w, r)
+
+	authorID := int64(claims["user_id"].(float64))
+	if userID != authorID {
+		config := response.Configure("Cannot update other User", http.StatusForbidden, nil)
 		response.JSONError(w, r, config)
 		return
 	}
