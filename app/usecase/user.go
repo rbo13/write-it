@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -222,18 +221,10 @@ func (u *userUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 func (u *userUsecase) Update(w http.ResponseWriter, r *http.Request) {
 	var user app.User
 	userID, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
-	if err != nil {
-		config := response.Configure(err.Error(), http.StatusUnprocessableEntity, nil)
-		response.JSONError(w, r, config)
-		return
-	}
+	check(err, w, r)
 
 	_, claims, err := jwtauth.FromContext(r.Context())
-	if err != nil {
-		config := response.Configure(err.Error(), http.StatusForbidden, nil)
-		response.JSONError(w, r, config)
-		return
-	}
+	check(err, w, r)
 
 	authorID := int64(claims["user_id"].(float64))
 	if userID != authorID {
@@ -241,9 +232,6 @@ func (u *userUsecase) Update(w http.ResponseWriter, r *http.Request) {
 		response.JSONError(w, r, config)
 		return
 	}
-
-	log.Println(authorID)
-	log.Println(userID)
 
 	// Find a user by the given id
 	userResp, err := u.userService.User(userID)
