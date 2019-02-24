@@ -175,7 +175,7 @@ func (u *User) UpdateUser(user *app.User) error {
 	user.UpdatedAt = time.Now().Unix()
 
 	tx := u.DB.MustBegin()
-	res := tx.MustExec("UPDATE users SET username = ?, email = ?, password = ?, updated_at = ? WHERE id = ?;", user.Username, user.EmailAddress, user.Password, user.UpdatedAt, user.ID)
+	res := tx.MustExec("UPDATE users SET username = ?, email = ?, password = ?, user_type = ?, updated_at = ? WHERE id = ?;", user.Username, user.EmailAddress, user.Password, user.UserType, user.UpdatedAt, user.ID)
 
 	if res == nil {
 		tx.Rollback()
