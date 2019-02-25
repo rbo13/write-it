@@ -18,9 +18,21 @@ func Set(c Cacher, key string, data string) (bool, error) {
 	return c.Set(key, data)
 }
 
-// Get retrieves data from cache
-func Get(c Cacher, key string) (string, error) {
-	return c.Get(key)
+// Get retrieves data from cache and wraps the json.Unmarshal function
+// func Get(c Cacher, key string) (string, error) {
+// 	return c.Get(key)
+// }
+
+// Get retrieves data from cache and wraps the json.Unmarshal function.
+func Get(c Cacher, key string, dest interface{}) error {
+	// return c.Get(key)
+	data, err := c.Get(key)
+
+	if err == nil && data != "" {
+		return json.Unmarshal([]byte(data), &dest)
+	}
+
+	return err
 }
 
 // Delete deletes an item from the cache
