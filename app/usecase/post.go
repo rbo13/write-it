@@ -72,23 +72,13 @@ func (p *postUsecase) Get(w http.ResponseWriter, r *http.Request) {
 	cacheKey = "getAllPosts"
 	mem := BootMemcached()
 
-	data, err := cache.Get(mem, cacheKey)
-	if err == nil && data != "" {
-		val, err := postsUnmarshaler(data, posts)
-
-		if err != nil {
-			config := response.Configure(err.Error(), http.StatusInternalServerError, nil)
-			response.JSONError(w, r, config)
-		}
-
-		if val != nil && err == nil {
-			config := response.Configure("Post successfully retrieved", http.StatusOK, map[string]interface{}{
-				"posts":  val,
-				"cached": true,
-			})
-			response.JSONOK(w, r, config)
-		}
-
+	err := cache.Get(mem, cacheKey, &posts)
+	if err == nil {
+		config := response.Configure("Posts successfully retrieved", http.StatusOK, map[string]interface{}{
+			"posts":  posts,
+			"cached": true,
+		})
+		response.JSONOK(w, r, config)
 		return
 	}
 
@@ -130,30 +120,13 @@ func (p *postUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 	cacheKey = chi.URLParam(r, "id")
 	mem := BootMemcached()
 
-	data, err := cache.Get(mem, cacheKey)
-	if err == nil && data != "" {
-		// err = json.Unmarshal([]byte(data), &post)
-		val, err := Unmarshaler(data, post)
-
-		if err != nil {
-			config := response.Configure(err.Error(), http.StatusInternalServerError, nil)
-			response.JSONError(w, r, config)
-		}
-
-		// assert the type since we return an interface{}.
-
-		if val != nil {
-			post = val.(*app.Post)
-		}
-
-		if post != nil && err == nil {
-			config := response.Configure("Post successfully retrieved", http.StatusOK, map[string]interface{}{
-				"post":   post,
-				"cached": true,
-			})
-			response.JSONOK(w, r, config)
-		}
-
+	err = cache.Get(mem, cacheKey, &post)
+	if err == nil {
+		config := response.Configure("Post successfully retrieved", http.StatusOK, map[string]interface{}{
+			"post":   post,
+			"cached": true,
+		})
+		response.JSONOK(w, r, config)
 		return
 	}
 

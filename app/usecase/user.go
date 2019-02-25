@@ -129,12 +129,12 @@ func (u *userUsecase) Login(w http.ResponseWriter, r *http.Request) {
 func (u *userUsecase) Get(w http.ResponseWriter, r *http.Request) {
 	mem := BootMemcached()
 	cacheKey = "getAllUsers"
+	var usrs []app.User
 
-	usersCache, err := getUsersFromCache(cacheKey, mem)
-
-	if len(usersCache) > 0 {
+	err := cache.Get(mem, cacheKey, &usrs)
+	if err == nil {
 		config := response.Configure("Users successfully retrieved", http.StatusOK, map[string]interface{}{
-			"users":  usersCache,
+			"users":  usrs,
 			"cached": true,
 		})
 		response.JSONOK(w, r, config)
@@ -142,7 +142,6 @@ func (u *userUsecase) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	users, err := u.userService.Users()
-
 	if err != nil || users == nil {
 		config := response.Configure(err.Error(), http.StatusNotFound, users)
 		response.JSONError(w, r, config)
@@ -178,24 +177,36 @@ func (u *userUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 	cacheKey = chi.URLParam(r, "id")
 	mem := BootMemcached()
 
-	data, err := cache.Get(mem, cacheKey)
-	if err == nil && data != "" {
-		err = json.Unmarshal([]byte(data), &user)
-		if err != nil {
-			config := response.Configure(err.Error(), http.StatusInternalServerError, nil)
-			response.JSONError(w, r, config)
-		}
-
-		if user != nil && err == nil {
-			config := response.Configure("User successfully retrieved", http.StatusOK, map[string]interface{}{
-				"user":   user,
-				"cached": true,
-			})
-			response.JSONOK(w, r, config)
-		}
-
+	err = cache.Get(mem, cacheKey, &user)
+	if err == nil {
+		config := response.Configure("User successfully retrieved", http.StatusOK, map[string]interface{}{
+			"user":   user,
+			"cached": true,
+		})
+		response.JSONOK(w, r, config)
 		return
 	}
+
+	// data, err := cache.Get(mem, cacheKey)
+	// if err == nil && data != "" {
+	// 	// err = json.Unmarshal([]byte(data), &user)
+	// 	err = cache.Unmarshal(data, &user)
+	//
+	// 	if err != nil {
+	// 		config := response.Configure(err.Error(), http.StatusInternalServerError, nil)
+	// 		response.JSONError(w, r, config)
+	// 	}
+	//
+	// 	if user != nil && err == nil {
+	// 		config := response.Configure("User successfully retrieved", http.StatusOK, map[string]interface{}{
+	// 			"user":   user,
+	// 			"cached": true,
+	// 		})
+	// 		response.JSONOK(w, r, config)
+	// 	}
+	//
+	// 	return
+	// }
 
 	user, err = u.userService.User(userID)
 	if err != nil {
@@ -299,22 +310,22 @@ func errorResponse(statusCode uint, message string) (errResponse UserResponse) {
 	return errResponse
 }
 
-func getUsersFromCache(cacheKey string, mem *memcached.Memcached) ([]app.User, error) {
-
-	cacheData, err := cache.Get(mem, cacheKey)
-	var users []app.User
-
-	if cacheData != "" {
-		err = json.Unmarshal([]byte(cacheData), &users)
-
-		if err != nil {
-			return nil, err
-		}
-		return users, nil
-	}
-
-	return users, nil
-}
+// func getUsersFromCache(cacheKey string, mem *memcached.Memcached) ([]app.User, error) {
+//
+// 	cacheData, err := cache.Get(mem, cacheKey)
+// 	var users []app.User
+//
+// 	if cacheData != "" {
+// 		err = json.Unmarshal([]byte(cacheData), &users)
+//
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		return users, nil
+// 	}
+//
+// 	return users, nil
+// }
 
 // StoreToCache stores given value to the cache.
 func StoreToCache(mem *memcached.Memcached, data interface{}, cacheKey string) error {

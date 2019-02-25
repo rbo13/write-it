@@ -1,5 +1,9 @@
 package cache
 
+import (
+	"encoding/json"
+)
+
 // Cacher sets the basic caching functionality.
 // E.g: Set, Get, Delete
 type Cacher interface {
@@ -16,9 +20,21 @@ func Set(c Cacher, key string, data string) (bool, error) {
 	return c.Set(key, data)
 }
 
-// Get retrieves data from cache
-func Get(c Cacher, key string) (string, error) {
-	return c.Get(key)
+// Get retrieves data from cache and wraps the json.Unmarshal function
+// func Get(c Cacher, key string) (string, error) {
+// 	return c.Get(key)
+// }
+
+// Get retrieves data from cache and wraps the json.Unmarshal function.
+func Get(c Cacher, key string, dest interface{}) error {
+	// return c.Get(key)
+	data, err := c.Get(key)
+
+	if err == nil && data != "" {
+		return json.Unmarshal([]byte(data), &dest)
+	}
+
+	return err
 }
 
 // Delete deletes an item from the cache
@@ -26,4 +42,9 @@ func Get(c Cacher, key string) (string, error) {
 // boolean value if succcessful, error otherwise
 func Delete(c Cacher, key string) (bool, error) {
 	return c.Delete(key)
+}
+
+// Unmarshal wraps the json.Unmarshal to unmarshal the values insside the cache.
+func Unmarshal(data string, dest interface{}) error {
+	return json.Unmarshal([]byte(data), &dest)
 }

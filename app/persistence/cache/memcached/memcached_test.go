@@ -1,6 +1,7 @@
 package memcached_test
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/rbo13/write-it/app/persistence/cache"
@@ -11,11 +12,26 @@ var (
 	testKey = "myTestKey1"
 )
 
+type testData struct {
+	Val string `json:"val"`
+}
+
 func TestMemcached(t *testing.T) {
 	mem := memcached.New("localhost", "11211", "localhost:11211")
 
 	t.Run("Set Cache", func(t *testing.T) {
-		ok, err := cache.Set(mem, testKey, "chardy")
+
+		val := testData{
+			Val: "Hello World",
+		}
+
+		d, err := json.Marshal(val)
+
+		if err != nil {
+			t.Error(err)
+		}
+
+		ok, err := cache.Set(mem, testKey, string(d))
 
 		if err != nil {
 			t.Error(err)
@@ -27,13 +43,15 @@ func TestMemcached(t *testing.T) {
 	})
 
 	t.Run("Get Cache", func(t *testing.T) {
-		val, err := cache.Get(mem, testKey)
+		var d testData
+
+		err := cache.Get(mem, testKey, d)
 
 		if err != nil {
 			t.Error(err)
 		}
 
-		t.Log(val)
+		t.Log(d)
 	})
 
 	t.Run("Delete Cache", func(t *testing.T) {
