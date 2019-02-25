@@ -129,17 +129,39 @@ func (u *userUsecase) Login(w http.ResponseWriter, r *http.Request) {
 func (u *userUsecase) Get(w http.ResponseWriter, r *http.Request) {
 	mem := BootMemcached()
 	cacheKey = "getAllUsers"
+	var usrs []app.User
 
-	usersCache, err := getUsersFromCache(cacheKey, mem)
+	data, err := cache.Get(mem, cacheKey)
 
-	if len(usersCache) > 0 {
-		config := response.Configure("Users successfully retrieved", http.StatusOK, map[string]interface{}{
-			"users":  usersCache,
-			"cached": true,
-		})
-		response.JSONOK(w, r, config)
+	if err == nil && data != "" {
+		err = cache.Unmarshal(data, &usrs)
+
+		if err != nil {
+			config := response.Configure(err.Error(), http.StatusInternalServerError, nil)
+			response.JSONError(w, r, config)
+		}
+
+		if err == nil {
+			config := response.Configure("Users successfully retrieved", http.StatusOK, map[string]interface{}{
+				"users":  usrs,
+				"cached": true,
+			})
+			response.JSONOK(w, r, config)
+		}
+
 		return
 	}
+
+	// usersCache, err := getUsersFromCache(cacheKey, mem)
+
+	// if len(usersCache) > 0 {
+	// 	config := response.Configure("Users successfully retrieved", http.StatusOK, map[string]interface{}{
+	// 		"users":  usersCache,
+	// 		"cached": true,
+	// 	})
+	// 	response.JSONOK(w, r, config)
+	// 	return
+	// }
 
 	users, err := u.userService.Users()
 
