@@ -180,7 +180,9 @@ func (u *userUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	data, err := cache.Get(mem, cacheKey)
 	if err == nil && data != "" {
-		err = json.Unmarshal([]byte(data), &user)
+		// err = json.Unmarshal([]byte(data), &user)
+		err = cache.Unmarshal(data, &user)
+
 		if err != nil {
 			config := response.Configure(err.Error(), http.StatusInternalServerError, nil)
 			response.JSONError(w, r, config)
