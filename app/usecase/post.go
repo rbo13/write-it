@@ -74,16 +74,17 @@ func (p *postUsecase) Get(w http.ResponseWriter, r *http.Request) {
 
 	data, err := cache.Get(mem, cacheKey)
 	if err == nil && data != "" {
-		val, err := postsUnmarshaler(data, posts)
+		// val, err := postsUnmarshaler(data, posts)
+		err = cache.Unmarshal(data, &posts)
 
 		if err != nil {
 			config := response.Configure(err.Error(), http.StatusInternalServerError, nil)
 			response.JSONError(w, r, config)
 		}
 
-		if val != nil && err == nil {
+		if err == nil {
 			config := response.Configure("Post successfully retrieved", http.StatusOK, map[string]interface{}{
-				"posts":  val,
+				"posts":  posts,
 				"cached": true,
 			})
 			response.JSONOK(w, r, config)
@@ -133,7 +134,8 @@ func (p *postUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 	data, err := cache.Get(mem, cacheKey)
 	if err == nil && data != "" {
 		// err = json.Unmarshal([]byte(data), &post)
-		val, err := Unmarshaler(data, post)
+		// val, err := Unmarshaler(data, post)
+		err = cache.Unmarshal(data, &post)
 
 		if err != nil {
 			config := response.Configure(err.Error(), http.StatusInternalServerError, nil)
@@ -142,9 +144,9 @@ func (p *postUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 
 		// assert the type since we return an interface{}.
 
-		if val != nil {
-			post = val.(*app.Post)
-		}
+		// if val != nil {
+		// 	post = val.(*app.Post)
+		// }
 
 		if post != nil && err == nil {
 			config := response.Configure("Post successfully retrieved", http.StatusOK, map[string]interface{}{
