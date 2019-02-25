@@ -178,7 +178,14 @@ func (u *userUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 	mem := BootMemcached()
 
 	err = cache.Get(mem, cacheKey, &user)
-	check(err, w, r)
+	if err == nil {
+		config := response.Configure("User successfully retrieved", http.StatusOK, map[string]interface{}{
+			"user":   user,
+			"cached": true,
+		})
+		response.JSONOK(w, r, config)
+		return
+	}
 
 	// data, err := cache.Get(mem, cacheKey)
 	// if err == nil && data != "" {
