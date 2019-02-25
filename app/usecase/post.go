@@ -73,28 +73,14 @@ func (p *postUsecase) Get(w http.ResponseWriter, r *http.Request) {
 	mem := BootMemcached()
 
 	err := cache.Get(mem, cacheKey, &posts)
-	check(err, w, r)
-
-	// data, err := cache.Get(mem, cacheKey)
-	// if err == nil && data != "" {
-	// 	// val, err := postsUnmarshaler(data, posts)
-	// 	err = cache.Unmarshal(data, &posts)
-	//
-	// 	if err != nil {
-	// 		config := response.Configure(err.Error(), http.StatusInternalServerError, nil)
-	// 		response.JSONError(w, r, config)
-	// 	}
-	//
-	// 	if err == nil {
-	// 		config := response.Configure("Post successfully retrieved", http.StatusOK, map[string]interface{}{
-	// 			"posts":  posts,
-	// 			"cached": true,
-	// 		})
-	// 		response.JSONOK(w, r, config)
-	// 	}
-	//
-	// 	return
-	// }
+	if err == nil {
+		config := response.Configure("Posts successfully retrieved", http.StatusOK, map[string]interface{}{
+			"posts":  posts,
+			"cached": true,
+		})
+		response.JSONOK(w, r, config)
+		return
+	}
 
 	posts, err = p.postService.Posts()
 
