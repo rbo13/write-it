@@ -1,6 +1,8 @@
 package cache
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 // Cacher sets the basic caching functionality.
 // E.g: Set, Get, Delete
