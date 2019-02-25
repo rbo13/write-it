@@ -183,17 +183,21 @@ func (p *postUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 func (p *postUsecase) Update(w http.ResponseWriter, r *http.Request) {
 	var post app.Post
 	postID, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
-
 	check(err, w, r)
 
 	_, claims, err := jwtauth.FromContext(r.Context())
-
 	check(err, w, r)
 
 	// find a user by the given id
 	postFetchRes, err := p.postService.Post(postID)
-
 	check(err, w, r)
+
+	userID := int64(claims["user_id"].(float64))
+	if postFetchRes.CreatorID != userID {
+		config := response.Configure("Cannot update other Post", http.StatusForbidden, nil)
+		response.JSONError(w, r, config)
+		return
+	}
 
 	post.ID = postFetchRes.ID
 	post.CreatorID = int64(claims["user_id"].(float64))
