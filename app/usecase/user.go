@@ -149,9 +149,9 @@ func (u *userUsecase) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(users) > 0 {
-		err = StoreToCache(mem, users, cacheKey)
+		ok, err := cache.Set(mem, cacheKey, users)
 
-		if err != nil {
+		if err != nil && !ok {
 			config := response.Configure(err.Error(), http.StatusUnprocessableEntity, nil)
 			response.JSONError(w, r, config)
 			return
@@ -187,27 +187,6 @@ func (u *userUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// data, err := cache.Get(mem, cacheKey)
-	// if err == nil && data != "" {
-	// 	// err = json.Unmarshal([]byte(data), &user)
-	// 	err = cache.Unmarshal(data, &user)
-	//
-	// 	if err != nil {
-	// 		config := response.Configure(err.Error(), http.StatusInternalServerError, nil)
-	// 		response.JSONError(w, r, config)
-	// 	}
-	//
-	// 	if user != nil && err == nil {
-	// 		config := response.Configure("User successfully retrieved", http.StatusOK, map[string]interface{}{
-	// 			"user":   user,
-	// 			"cached": true,
-	// 		})
-	// 		response.JSONOK(w, r, config)
-	// 	}
-	//
-	// 	return
-	// }
-
 	user, err = u.userService.User(userID)
 	if err != nil {
 		config := response.Configure(err.Error(), http.StatusNotFound, nil)
@@ -215,8 +194,8 @@ func (u *userUsecase) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = StoreToCache(mem, user, cacheKey)
-	if err != nil {
+	ok, err := cache.Set(mem, cacheKey, user)
+	if err != nil && !ok {
 		config := response.Configure(err.Error(), http.StatusUnprocessableEntity, nil)
 		response.JSONError(w, r, config)
 		return
