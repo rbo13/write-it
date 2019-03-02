@@ -16,8 +16,22 @@ type Cacher interface {
 // and returns a boolean value
 // data is saved successfully,
 // returns error otherwise
-func Set(c Cacher, key string, data string) (bool, error) {
-	return c.Set(key, data)
+func Set(c Cacher, key string, data interface{}) (bool, error) {
+	// return c.Set(key, data)
+
+	val, err := json.Marshal(data)
+
+	if err != nil {
+		return false, err
+	}
+	// _, err = cache.Set(mem, cacheKey, string(val))
+	_, err = c.Set(key, string(val))
+
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 // Get retrieves data from cache and wraps the json.Unmarshal function
