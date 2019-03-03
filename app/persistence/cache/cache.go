@@ -34,11 +34,6 @@ func Set(c Cacher, key string, data interface{}) (bool, error) {
 	return true, nil
 }
 
-// Get retrieves data from cache and wraps the json.Unmarshal function
-// func Get(c Cacher, key string) (string, error) {
-// 	return c.Get(key)
-// }
-
 // Get retrieves data from cache and wraps the json.Unmarshal function.
 func Get(c Cacher, key string, dest interface{}) error {
 	// return c.Get(key)
