@@ -219,6 +219,12 @@ func (p *postUsecase) Delete(w http.ResponseWriter, r *http.Request) {
 		response.JSONError(w, r, config)
 		return
 	}
+	mem := BootMemcached()
+	allPostsKey := "getAllPosts"
+	singlePostKey := chi.URLParam(r, "id")
+
+	_, err = cache.Delete(mem, allPostsKey)
+	_, err = cache.Delete(mem, singlePostKey)
 
 	config := response.Configure("Post Successfully Deleted", http.StatusOK, nil)
 	response.JSONOK(w, r, config)
