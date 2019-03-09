@@ -2,10 +2,15 @@ package cache
 
 import (
 	"encoding/json"
+	"errors"
+)
+
+var (
+	errMissingKey = errors.New("err: missing key")
 )
 
 // Cacher sets the basic caching functionality.
-// E.g: Set, Get, Delete
+// E.g. Set, Get, Delete
 type Cacher interface {
 	Set(string, string) (bool, error)
 	Get(string) (string, error)
@@ -17,7 +22,9 @@ type Cacher interface {
 // data is saved successfully,
 // returns error otherwise
 func Set(c Cacher, key string, data interface{}) (bool, error) {
-	// return c.Set(key, data)
+	if key == "" {
+		return false, errMissingKey
+	}
 
 	val, err := json.Marshal(data)
 
@@ -36,7 +43,10 @@ func Set(c Cacher, key string, data interface{}) (bool, error) {
 
 // Get retrieves data from cache and wraps the json.Unmarshal function.
 func Get(c Cacher, key string, dest interface{}) error {
-	// return c.Get(key)
+	if key == "" {
+		return errMissingKey
+	}
+
 	data, err := c.Get(key)
 
 	if err == nil && data != "" {
@@ -50,10 +60,13 @@ func Get(c Cacher, key string, dest interface{}) error {
 // using the specified key. Returns
 // boolean value if succcessful, error otherwise
 func Delete(c Cacher, key string) (bool, error) {
+	if key == "" {
+		return false, errMissingKey
+	}
 	return c.Delete(key)
 }
 
-// Unmarshal wraps the json.Unmarshal to unmarshal the values insside the cache.
+// Unmarshal wraps the json.Unmarshal to unmarshal the values inside the cache.
 func Unmarshal(data string, dest interface{}) error {
 	return json.Unmarshal([]byte(data), &dest)
 }
