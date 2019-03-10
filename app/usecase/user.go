@@ -266,6 +266,16 @@ func (u *userUsecase) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	_, claims, err := jwtauth.FromContext(r.Context())
+	check(err, w, r)
+
+	authID := int64(claims["user_id"].(float64))
+	if userID != authID {
+		config := response.Configure("Cannot Delete other User", http.StatusForbidden, nil)
+		response.JSONError(w, r, config)
+		return
+	}
+
 	err = u.userService.DeleteUser(userID)
 
 	if err != nil {
