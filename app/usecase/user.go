@@ -315,19 +315,3 @@ func errorResponse(statusCode uint, message string) (errResponse UserResponse) {
 //
 // 	return users, nil
 // }
-
-// StoreToCache stores given value to the cache.
-func StoreToCache(mem *memcached.Memcached, data interface{}, cacheKey string) error {
-	val, err := json.Marshal(data)
-
-	if err != nil {
-		return err
-	}
-	_, err = cache.Set(mem, cacheKey, string(val))
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
