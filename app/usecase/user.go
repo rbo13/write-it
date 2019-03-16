@@ -298,36 +298,3 @@ func errorResponse(statusCode uint, message string) (errResponse UserResponse) {
 
 	return errResponse
 }
-
-// func getUsersFromCache(cacheKey string, mem *memcached.Memcached) ([]app.User, error) {
-//
-// 	cacheData, err := cache.Get(mem, cacheKey)
-// 	var users []app.User
-//
-// 	if cacheData != "" {
-// 		err = json.Unmarshal([]byte(cacheData), &users)
-//
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		return users, nil
-// 	}
-//
-// 	return users, nil
-// }
-
-// StoreToCache stores given value to the cache.
-func StoreToCache(mem *memcached.Memcached, data interface{}, cacheKey string) error {
-	val, err := json.Marshal(data)
-
-	if err != nil {
-		return err
-	}
-	_, err = cache.Set(mem, cacheKey, string(val))
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}

@@ -242,16 +242,6 @@ func check(err error, w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func postsUnmarshaler(data string, val []*app.Post) ([]*app.Post, error) {
-	err := json.Unmarshal([]byte(data), &val)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return val, nil
-}
-
 // Unmarshaler handles the unmarshaling of data
 func Unmarshaler(data string, val interface{}) (interface{}, error) {
 	err := json.Unmarshal([]byte(data), &val)
