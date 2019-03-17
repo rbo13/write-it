@@ -65,9 +65,6 @@ func main() {
 		r.Use(jwtauth.Authenticator)
 
 		// API GROUP
-		// r.Mount("/api/v1/users", routes.User(router, userUsecase))
-		// r.Mount("/api/v1/posts", routes.Post(r, postUsecase))
-
 		r.Route("/api", func(rt chi.Router) {
 			rt.Mount("/v1/users", routes.User(rt, userUsecase))
 			rt.Mount("/v1/posts", routes.Post(r, postUsecase))
@@ -85,14 +82,6 @@ func main() {
 	}()
 
 	gracefulShutdown(s.HTTPServer)
-
-	// c := make(chan os.Signal, 1)
-	// signal.Notify(c, os.Interrupt)
-	// <-c
-	//
-	// ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	// defer cancel()
-	// s.HTTPServer.Shutdown(ctx)
 }
 
 func check(err error) error {
