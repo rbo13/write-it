@@ -216,8 +216,7 @@ func hashPassword(rawPassword string) (hashedPassword string) {
 	return hashedPassword
 }
 
-// ComparePasswords compares the hashed and raw password.
-// Returns boolean if equal
+// ComparePasswords compares the hashed and raw password. Returns boolean if equal.
 func comparePasswords(hashedPassword string, rawPassword []byte) bool {
 	byteHash := []byte(hashedPassword)
 
