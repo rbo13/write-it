@@ -52,3 +52,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/bradfitz/gomemcache"
+
+[[constraint]]
+  name = "github.com/gorilla/websocket"
+  version = "1.4.0"
