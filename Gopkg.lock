@@ -53,6 +53,14 @@
   version = "v1.4.1"
 
 [[projects]]
+  digest = "1:7b5c6e2eeaa9ae5907c391a91c132abfd5c9e8a784a341b5625e750c67e6825d"
+  name = "github.com/gorilla/websocket"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "66b9c49e59c6c48f0ffce28c2d8b8a5678502c6d"
+  version = "v1.4.0"
+
+[[projects]]
   digest = "1:6c41d4f998a03b6604227ccad36edaed6126c397e5d78709ef4814a1145a6757"
   name = "github.com/jmoiron/sqlx"
   packages = [
@@ -93,6 +101,7 @@
     "github.com/go-chi/jwtauth",
     "github.com/go-chi/render",
     "github.com/go-sql-driver/mysql",
+    "github.com/gorilla/websocket",
     "github.com/jmoiron/sqlx",
     "golang.org/x/crypto/bcrypt",
   ]
