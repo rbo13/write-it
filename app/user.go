@@ -26,5 +26,5 @@ type UserService interface {
 
 // TableName represents the table name of user
 func (User) TableName() string {
-	return "user"
+	return "users"
 }
