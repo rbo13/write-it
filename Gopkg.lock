@@ -53,6 +53,14 @@
   version = "v1.4.1"
 
 [[projects]]
+  digest = "1:bed9d72d596f94e65fff37f4d6c01398074a6bb1c3f3ceff963516bd01db6ff5"
+  name = "github.com/gofrs/uuid"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "6b08a5c5172ba18946672b49749cde22873dd7c2"
+  version = "v3.2.0"
+
+[[projects]]
   digest = "1:7b5c6e2eeaa9ae5907c391a91c132abfd5c9e8a784a341b5625e750c67e6825d"
   name = "github.com/gorilla/websocket"
   packages = ["."]
@@ -70,6 +78,14 @@
   pruneopts = "UT"
   revision = "d161d7a76b5661016ad0b085869f77fd410f3e6a"
   version = "v1.2.0"
+
+[[projects]]
+  digest = "1:9b277495efeba85c05a0b638090f3d5f2a080d357de77b028227dcd1b8ac5ef9"
+  name = "github.com/lucasb-eyer/go-colorful"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "b3ff143339304443cc5ee1c00995b51090f2c04d"
+  version = "v1.0.1"
 
 [[projects]]
   branch = "master"
@@ -101,8 +117,10 @@
     "github.com/go-chi/jwtauth",
     "github.com/go-chi/render",
     "github.com/go-sql-driver/mysql",
+    "github.com/gofrs/uuid",
     "github.com/gorilla/websocket",
     "github.com/jmoiron/sqlx",
+    "github.com/lucasb-eyer/go-colorful",
     "golang.org/x/crypto/bcrypt",
   ]
   solver-name = "gps-cdcl"
