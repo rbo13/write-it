@@ -171,6 +171,20 @@ func (u *User) Users() ([]*app.User, error) {
 	return users, nil
 }
 
+// GetUserPosts returns a slice to pointer of UserPosts.
+func (u *User) GetUserPosts(userID int64) ([]*app.UserPosts, error) {
+	var userPosts []*app.UserPosts
+
+	query := "SELECT po.`post_title`, po.`post_body`, po.`created_at`, po.`updated_at`, u.`user_type`, u.`email`, u.`username` FROM posts as po, users as u WHERE po.`creator_id` = u.`id` AND u.`id` = ?;"
+	err := u.DB.Select(&userPosts, query, userID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return userPosts, nil
+}
+
 // UpdateUser ...
 func (u *User) UpdateUser(user *app.User) error {
 	user.UpdatedAt = time.Now().Unix()

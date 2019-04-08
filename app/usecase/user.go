@@ -126,6 +126,22 @@ func (u *userUsecase) Login(w http.ResponseWriter, r *http.Request) {
 	response.JSONOK(w, r, config)
 }
 
+func (u *userUsecase) GetUserPosts(w http.ResponseWriter, r *http.Request) {
+	userID, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	if err != nil || userID <= 0 {
+		config := response.Configure(err.Error(), http.StatusUnprocessableEntity, nil)
+		response.JSONError(w, r, config)
+		return
+	}
+
+	// TODO:: Get From Cache
+
+	userPosts, err := u.userService.GetUserPosts(userID)
+
+	config := response.Configure("Hello World", http.StatusOK, userPosts)
+	response.JSONOK(w, r, config)
+}
+
 func (u *userUsecase) Get(w http.ResponseWriter, r *http.Request) {
 	mem := BootMemcached()
 	cacheKey = "getAllUsers"
