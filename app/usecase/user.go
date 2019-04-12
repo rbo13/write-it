@@ -134,11 +134,43 @@ func (u *userUsecase) GetUserPosts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO:: Get From Cache
+	mem := BootMemcached()
+	cacheKey := chi.URLParam(r, "id")
+	var userPosts []*app.UserPosts
 
-	userPosts, err := u.userService.GetUserPosts(userID)
+	err = cache.Get(mem, cacheKey, &userPosts)
+	if err == nil {
 
-	config := response.Configure("Hello World", http.StatusOK, userPosts)
+		config := response.Configure("User Posts successfully retrieved", http.StatusOK, map[string]interface{}{
+			"user_posts": userPosts,
+			"cached":     true,
+		})
+		response.JSONOK(w, r, config)
+		return
+	}
+
+	userPosts, err = u.userService.GetUserPosts(userID)
+
+	if err != nil || userPosts == nil {
+		config := response.Configure(err.Error(), http.StatusNotFound, userPosts)
+		response.JSONError(w, r, config)
+		return
+	}
+
+	if len(userPosts) > 0 {
+		ok, err := cache.Set(mem, cacheKey, userPosts)
+
+		if err != nil && !ok {
+			config := response.Configure(err.Error(), http.StatusUnprocessableEntity, nil)
+			response.JSONError(w, r, config)
+			return
+		}
+	}
+
+	config := response.Configure("User Posts successfully retrieved", http.StatusOK, map[string]interface{}{
+		"user_posts": userPosts,
+		"cached":     false,
+	})
 	response.JSONOK(w, r, config)
 }
 
