@@ -138,7 +138,6 @@ func (u *userUsecase) GetUserPosts(w http.ResponseWriter, r *http.Request) {
 	cacheKey := chi.URLParam(r, "id")
 	var userPosts []*app.UserPosts
 
-	// TODO:: Get From Cache
 	err = cache.Get(mem, cacheKey, &userPosts)
 	if err == nil {
 
