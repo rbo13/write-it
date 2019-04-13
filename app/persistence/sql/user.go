@@ -19,8 +19,10 @@ var (
 	errUserUpdate           = errors.New("Failed to updated the user")
 	errUserDelete           = errors.New("Failed to delete the user")
 	errEmailAlreadyTaken    = errors.New("Email Address is already taken")
+	errUsernameAlreadyTaken = errors.New("Username is already taken")
 	errNoResultSet          = errors.New("sql: no rows in result set")
 	errEmailRequired        = errors.New("Email is required")
+	errUsernameRequired     = errors.New("Username is required")
 	errMissingCredentials   = errors.New("Email or Password is missing")
 	errCredentialsIncorrect = errors.New("Email or Password is invalid")
 )
@@ -56,6 +58,16 @@ func (u *User) CreateUser(user *app.User) error {
 
 	if userRes != nil {
 		return errEmailAlreadyTaken
+	}
+
+	userRes, err = u.UserByUsername(user.Username)
+
+	if err != nil && err.Error() != errNoResultSet.Error() {
+		return errUserNotInserted
+	}
+
+	if userRes != nil {
+		return errUsernameAlreadyTaken
 	}
 
 	tx := u.DB.MustBegin()
@@ -103,6 +115,24 @@ func (u *User) UserByEmail(email string) (*app.User, error) {
 	user := app.User{}
 
 	err := u.DB.Get(&user, "SELECT * FROM users WHERE email = ? LIMIT 1;", email)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+// UserByUsername ...
+func (u *User) UserByUsername(username string) (*app.User, error) {
+
+	if username == "" {
+		return nil, errUsernameRequired
+	}
+
+	user := app.User{}
+
+	err := u.DB.Get(&user, "SELECT * FROM users WHERE username = ? LIMIT 1;", username)
 
 	if err != nil {
 		return nil, err
